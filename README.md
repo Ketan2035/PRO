@@ -18,7 +18,7 @@ It connects clients with skilled professionals (Doctors, Lawyers, Plumbers, Tuto
 ## 🛠️ Tech Stack
 - **Frontend:** React + Tailwind CSS + shadcn/ui  
 - **Backend:** Node.js + Express (planned)  
-- **Database:** MongoDB / PostgreSQL (planned)  
+- **Database:** MongoDB  
 - **Icons & UI:** Lucide React, modern gradient theme  
 
 ---
