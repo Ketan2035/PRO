@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom"
 
 const Hero = () => {
   return (
@@ -24,7 +25,7 @@ const Hero = () => {
         <p className="text-xs text-gray-500">Data Scientist</p>
       </div>
 
-      <div className=" hidden lg:flex absolute bottom-20 left-20 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
+      <div className=" hidden lg:flex absolute bottom-15 left-30 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
         <img
           src="https://i.pravatar.cc/80?img=3"
           alt="profile"
@@ -34,7 +35,25 @@ const Hero = () => {
         <p className="text-xs text-gray-500">AI Engineer</p>
       </div>
 
-      <div className=" hidden lg:flex absolute bottom-20 right-20 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
+      <div className=" hidden lg:flex absolute bottom-15 right-30 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
+        <img
+          src="https://i.pravatar.cc/80?img=4"
+          alt="profile"
+          className="w-14 h-14 rounded-full"
+        />
+        <p className="font-semibold text-sm">Fernando B.</p>
+        <p className="text-xs text-gray-500">Product Manager</p>
+      </div>
+      <div className=" hidden xl:flex absolute bottom-10 left-70 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
+        <img
+          src="https://i.pravatar.cc/80?img=4"
+          alt="profile"
+          className="w-14 h-14 rounded-full"
+        />
+        <p className="font-semibold text-sm">Fernando B.</p>
+        <p className="text-xs text-gray-500">Product Manager</p>
+      </div>
+      <div className=" hidden xl:flex absolute bottom-10 right-70 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
         <img
           src="https://i.pravatar.cc/80?img=4"
           alt="profile"
@@ -55,7 +74,7 @@ const Hero = () => {
         </p>
 
         <button className="mt-6 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-lg hover:bg-green-700">
-          Get Started
+          <Link to="/role">GET STARTED</Link>
         </button>
       </div>
     </section>
