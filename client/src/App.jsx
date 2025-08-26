@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import RoleSelection from './component/Getpopup';
 import CustomerRegister from './pages/Customersignup';
+import ProRegister from './pages/Professionalregister';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/login" element={<Login/>} />
           <Route path="/role" element={<RoleSelection/>} />
           <Route path="/about" element={<CustomerRegister/>} />
+          <Route path="/contact" element={<ProRegister/>} />
 
         </Routes>
       </BrowserRouter>

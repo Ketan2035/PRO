@@ -10,7 +10,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50">
+    <header className=" z-50">
       <nav className="flex justify-between items-center px-6 py-4 bg-white/10 backdrop-blur-md shadow-md">
         {/* Logo */}
         <h1 className="text-2xl font-bold flex items-center gap-2 text-white">
