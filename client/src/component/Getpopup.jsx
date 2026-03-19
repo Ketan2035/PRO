@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Briefcase, User } from "lucide-react";
-import {Link} from "react-router-dom"
+import {Link} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function RoleSelection() {
   const [selectedRole, setSelectedRole] = useState(null);
-
+  const navigate = useNavigate();
   return (
     <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 backdrop-blur-md">
       <div className="bg-white/20 rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -50,6 +51,13 @@ export default function RoleSelection() {
               ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-green-700"
               : "bg-gradient-to-r from-purple-400 to-pink-400 text-white cursor-not-allowed"
           }`}
+          onClick={() =>{
+            if(selectedRole=="pro"){
+              navigate("/pro_signup");
+            }else{
+              navigate("/customer_signup");
+            }
+          }}
         >
           Create Account
         </button>

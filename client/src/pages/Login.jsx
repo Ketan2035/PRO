@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import "boxicons/css/boxicons.min.css";
 import {Link} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+
 
 
 export default function Login({ isOpen, onClose }) {
   const [step, setStep] = useState("mobile"); // mobile → otp
   const [mobile, setMobile] = useState("");
   const [otp, setOtp] = useState("");
+  const navigate=useNavigate();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -14,7 +17,7 @@ export default function Login({ isOpen, onClose }) {
         {/* Close Button */}
         <button
           className="absolute top-3 right-3 text-white hover:text-red-400"
-          onClick={onClose}
+          onClick={()=>navigate("/")}
         >
           <i className="bx bx-x text-2xl"></i>
         </button>
@@ -45,7 +48,7 @@ export default function Login({ isOpen, onClose }) {
             </button>
             <div className="flex justify-end ">
                 <span>
-                    don't you have an account?  <Link to="/signup" classNmae="text-black">Do register</Link>
+                    don't you have an account?  <Link to="/role" classNmae="text-black">Do register</Link>
                 </span>
             </div>
           </div>

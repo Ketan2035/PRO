@@ -1,84 +1,180 @@
 import React from "react";
-import {Link} from "react-router-dom"
+import { Link } from "react-router-dom";
+import { Search, MapPin, Star } from "lucide-react";
 
-const Hero = () => {
+const services = [
+  { name: "Doctor", price: "₹299" },
+  { name: "Plumber", price: "₹499" },
+  { name: "Home Cleaning", price: "₹299" },
+  { name: "Electrician", price: "₹199" },
+];
+
+const professionals = [
+  {
+    name: "Jane S.",
+    role: "AI Engineer",
+    rating: 4.9,
+    location: "Delhi",
+    img: "https://i.pravatar.cc/150?img=1",
+  },
+  {
+    name: "Rahul K.",
+    role: "Web Developer",
+    rating: 4.8,
+    location: "Mumbai",
+    img: "https://i.pravatar.cc/150?img=2",
+  },
+  {
+    name: "Amit P.",
+    role: "Electrician",
+    rating: 4.7,
+    location: "Lucknow",
+    img: "https://i.pravatar.cc/150?img=3",
+  },
+];
+
+const Home = () => {
   return (
-    <section className="relative bg-blue-600 py-20">
-      {/* Floating Profiles */}
-      <div className=" hidden lg:flex absolute top-10 left-10 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=1"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Andrea R.</p>
-        <p className="text-xs text-gray-500">Lead Engineer</p>
-      </div>
+    <div className="bg-gray-50 min-h-screen">
+      {/* HERO */}
+      <section className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+            Find Trusted Professionals Near You
+          </h1>
+          <p className="mt-4 text-lg text-gray-200">
+            Book reliable experts for all your needs
+          </p>
 
-      <div className=" hidden lg:flex absolute top-10 right-10 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=2"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Martin G.</p>
-        <p className="text-xs text-gray-500">Data Scientist</p>
-      </div>
+          {/* SEARCH BAR */}
+          <div className="mt-8 flex flex-col md:flex-row items-center gap-3 bg-white p-3 rounded-xl shadow-lg max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 w-full">
+              <Search className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search services..."
+                className="w-full outline-none text-gray-700"
+              />
+            </div>
 
-      <div className=" hidden lg:flex absolute bottom-15 left-30 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=3"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Jane S.</p>
-        <p className="text-xs text-gray-500">AI Engineer</p>
-      </div>
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <MapPin className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Location"
+                className="outline-none text-gray-700"
+              />
+            </div>
 
-      <div className=" hidden lg:flex absolute bottom-15 right-30 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=4"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Fernando B.</p>
-        <p className="text-xs text-gray-500">Product Manager</p>
-      </div>
-      <div className=" hidden xl:flex absolute bottom-10 left-70 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=4"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Fernando B.</p>
-        <p className="text-xs text-gray-500">Product Manager</p>
-      </div>
-      <div className=" hidden xl:flex absolute bottom-10 right-70 bg-white shadow-lg rounded-xl p-3  flex-col items-center">
-        <img
-          src="https://i.pravatar.cc/80?img=4"
-          alt="profile"
-          className="w-14 h-14 rounded-full"
-        />
-        <p className="font-semibold text-sm">Fernando B.</p>
-        <p className="text-xs text-gray-500">Product Manager</p>
-      </div>
+            <button className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 w-full md:w-auto">
+              Search
+            </button>
+          </div>
+        </div>
+      </section>
 
-      {/* Center Content */}
-      <div className="relative text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-          Complete your Work with{" "}
-          <span>experienced professionals</span>
-        </h1>
-        <p className="mt-4 text-lg text-gray-600">
-          Connect with trusted experts near you today.
-        </p>
+      {/* SERVICES */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="text-2xl md:text-3xl font-bold mb-8">
+          Popular Services
+        </h2>
 
-        <button className="mt-6 px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-lg hover:bg-green-700">
-          <Link to="/role">GET STARTED</Link>
-        </button>
-      </div>
-    </section>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {services.map((service, i) => (
+            <div
+              key={i}
+              className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition cursor-pointer"
+            >
+              <h3 className="font-semibold text-lg">{service.name}</h3>
+              <p className="text-sm text-gray-500 mt-2">Starting from</p>
+              <p className="text-green-600 font-bold">{service.price}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PROFESSIONALS */}
+      <section className="bg-white py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8">
+            Top Professionals
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {professionals.map((pro, i) => (
+              <div
+                key={i}
+                className="border rounded-2xl p-5 hover:shadow-xl transition"
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={pro.img}
+                    alt=""
+                    className="w-14 h-14 rounded-full"
+                  />
+                  <div>
+                    <h3 className="font-semibold">{pro.name}</h3>
+                    <p className="text-sm text-gray-500">{pro.role}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <Star size={16} /> {pro.rating}
+                  </span>
+                  <span>{pro.location}</span>
+                </div>
+
+                <Link to={`/profile/${pro.name}`}>
+                  <button className="mt-4 w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700">
+                    Hire Now
+                  </button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="bg-gray-100 py-16">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-10">
+            How It Works
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { title: "Search", desc: "Find services near you" },
+              { title: "Choose", desc: "Select professionals" },
+              { title: "Connect", desc: "Book & get work done" },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition"
+              >
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+                <p className="text-gray-500 mt-2">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="bg-indigo-600 text-white py-16 text-center">
+        <h2 className="text-3xl font-bold">
+          Ready to get your work done?
+        </h2>
+        <Link
+          to="/role"
+          className="inline-block mt-6 bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200"
+        >
+          Get Started
+        </Link>
+      </section>
+    </div>
   );
 };
 
-export default Hero;
+export default Home;

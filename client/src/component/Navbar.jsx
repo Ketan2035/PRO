@@ -17,9 +17,8 @@ export default function Navbar() {
           <i className="bx bx-user-circle text-3xl"></i> ProConnect
         </h1>
 
-        <div className=" md:flex items-center gap-3 w-1/2">
-          {/* Search Bar */}
-          <div className="flex items-center bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 w-full">
+        {/* <div className=" md:flex items-center gap-3 w-1/2">
+          <div className="hidden md:flex  items-center bg-white/20 backdrop-blur-sm rounded-lg px-3 py-2 w-full">
             <i className="bx bx-search text-gray-200 text-xl"></i>
             <input
               type="text"
@@ -35,7 +34,7 @@ export default function Navbar() {
               className="flex-1 bg-transparent outline-none px-2 text-white placeholder-gray-300"
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Desktop Menu */}
         <ul className="hidden lg:flex gap-6 font-medium text-white">
