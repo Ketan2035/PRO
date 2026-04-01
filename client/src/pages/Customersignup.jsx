@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 
 export default function CustomerRegister() {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     mobile: "",
+    password: "",
+    confirmPassword: "",
     city: "",
     address: "",
     otp: "",
@@ -43,21 +43,14 @@ export default function CustomerRegister() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    console.log("Sending:", formData);
-
-    const res = await fetch("http://localhost:5000/users/customer_signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-    console.log(data);
+    if (!otpVerified) {
+      alert("Please verify OTP before registering.");
+      return;
+    }
+    console.log("Customer Registered:", formData);
+    // send to backend
   };
 
   return (
@@ -72,17 +65,14 @@ export default function CustomerRegister() {
         </p>
 
         {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <form onSubmit={handleSubmit} className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Full Name */}
           <div>
             <label className="block text-gray-700 font-medium">Full Name</label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               required
               className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
@@ -106,9 +96,7 @@ export default function CustomerRegister() {
 
           {/* Mobile with OTP */}
           <div>
-            <label className=" block text-gray-700 font-medium">
-              Mobile Number
-            </label>
+            <label className=" block text-gray-700 font-medium">Mobile Number</label>
             <div className="flex h-14 gap-2">
               <input
                 type="tel"
@@ -132,9 +120,7 @@ export default function CustomerRegister() {
           {/* OTP */}
           {otpSent && (
             <div>
-              <label className="block text-gray-700 font-medium">
-                Enter OTP
-              </label>
+              <label className="block text-gray-700 font-medium">Enter OTP</label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -186,11 +172,39 @@ export default function CustomerRegister() {
               placeholder="Enter full address"
             ></textarea>
           </div>
+
+          {/* Password */}
+          <div>
+            <label className="block text-gray-700 font-medium">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
+              placeholder="Create a password"
+            />
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label className="block text-gray-700 font-medium">Confirm Password</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
+              placeholder="Re-enter your password"
+            />
+          </div>
+
           {/* Submit */}
           <div className="md:col-span-2">
             <button
               type="submit"
-              onClick={() => navigate("/")}
               disabled={!otpVerified}
               className={`w-full py-3 rounded-xl font-semibold transition shadow-lg ${
                 otpVerified
