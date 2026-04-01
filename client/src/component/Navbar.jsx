@@ -11,9 +11,9 @@ export default function Navbar() {
 
   return (
     <header className=" z-50">
-      <nav className="flex justify-between items-center px-6 py-4 bg-blue-200 backdrop-blur-md shadow-md">
+      <nav className="flex justify-between items-center px-6 py-4 bg-white/10 backdrop-blur-md shadow-md">
         {/* Logo */}
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-black">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-white">
           <i className="bx bx-user-circle text-3xl"></i> ProConnect
         </h1>
 
@@ -37,7 +37,7 @@ export default function Navbar() {
         </div> */}
 
         {/* Desktop Menu */}
-        <ul className="hidden lg:flex gap-6 font-medium text-black">
+        <ul className="hidden lg:flex gap-6 font-medium text-white">
           <li className="hover:text-purple-900 cursor-pointer flex items-center gap-1">
             <Link to="/" className="bx bx-home">Home</Link>
           </li>
@@ -62,7 +62,7 @@ export default function Navbar() {
 
       {/* Mobile Dropdown */}
       {isOpen && (
-        <ul className="lg:hidden bg-black backdrop-blur-md p-4 flex flex-col  gap-4 font-medium text-white">
+        <ul className="lg:hidden bg-white/20 backdrop-blur-md p-4 flex flex-col gap-4 font-medium text-white">
           <li className="hover:text-purple-900 cursor-pointer flex items-center gap-1">
             <Link to="/" className="bx bx-home" onClick={handelclick}>Home</Link> 
           </li>

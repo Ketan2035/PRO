@@ -1,74 +1,69 @@
 import React, { useState } from "react";
 import { Briefcase, User } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import {Link} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function RoleSelection() {
   const [selectedRole, setSelectedRole] = useState(null);
   const navigate = useNavigate();
-
   return (
-    <div className="fixed inset-0 bg-gray-50  flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+    <div className="fixed inset-0 bg-black/50  flex items-center justify-center z-50 backdrop-blur-md">
+      <div className="bg-white/20 rounded-2xl shadow-xl w-full max-w-md p-6">
         
-        <h2 className="text-2xl font-bold text-center text-gray-900">
+        <h2 className="text-2xl font-bold text-center text-white">
           Join as a Customer or Professional
         </h2>
 
         {/* Options */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          
-          {/* Customer */}
           <div
             onClick={() => setSelectedRole("client")}
-            className={`cursor-pointer border rounded-xl p-5 flex flex-col items-center text-center transition-all duration-200 ${
+            className={`cursor-pointer border rounded-xl p-5 flex flex-col items-center text-center transition ${
               selectedRole === "client"
-                ? "border-black bg-gray-100"
-                : "border-gray-300 hover:border-black hover:bg-gray-50"
+                ? "border-green-600 bg-gray-700"
+                : "border-gray-300 hover:border-green-800"
             }`}
           >
-            <Briefcase className="w-8 h-8 text-black mb-3" />
-            <p className="font-semibold text-gray-800">I'm a Customer</p>
-            <p className="text-sm text-gray-500">Hiring for work</p>
+            <Briefcase className="w-8 h-8 text-green-600 mb-3" />
+            <p className="font-medium text-white">I'm a Customer</p>
+            <p className="text-sm text-white">Hiring for a work</p>
           </div>
 
-          {/* Professional */}
           <div
             onClick={() => setSelectedRole("pro")}
-            className={`cursor-pointer border rounded-xl p-5 flex flex-col items-center text-center transition-all duration-200 ${
+            className={`cursor-pointer border rounded-xl p-5 flex flex-col items-center text-center transition ${
               selectedRole === "pro"
-                ? "border-black bg-gray-100"
-                : "border-gray-300 hover:border-black hover:bg-gray-50"
+                ? "border-green-600 bg-gray-700"
+                : "border-gray-300 hover:border-green-800"
             }`}
           >
-            <User className="w-8 h-8 text-black mb-3" />
-            <p className="font-semibold text-gray-800">I'm a Professional</p>
-            <p className="text-sm text-gray-500">Looking for work</p>
+            <User className="w-8 h-8 text-green-600 mb-3" />
+            <p className="font-medium text-white">I'm a Professional</p>
+            <p className="text-sm text-white">Looking for work</p>
           </div>
         </div>
 
         {/* Button */}
         <button
           disabled={!selectedRole}
-          className={`mt-6 w-full py-3 rounded-xl font-semibold transition ${
+          className={`mt-6 w-full py-3 rounded-xl font-semibold ${
             selectedRole
-              ? "bg-black text-white hover:bg-gray-800"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-green-700"
+              : "bg-gradient-to-r from-purple-400 to-pink-400 text-white cursor-not-allowed"
           }`}
-          onClick={() => {
-            if (selectedRole === "pro") {
+          onClick={() =>{
+            if(selectedRole=="pro"){
               navigate("/pro_signup");
-            } else {
+            }else{
               navigate("/customer_signup");
             }
           }}
         >
           Create Account
         </button>
-
-        {/* Login */}
-        <p className="mt-4 text-center text-sm text-gray-600">
+        <p className="mt-4 text-center text-sm text-white">
           Already have an account?{" "}
-          <Link to="/login" className="text-black font-semibold underline">
+          <Link to="/login" className="text-black font-bold underline">
             Log In
           </Link>
         </p>

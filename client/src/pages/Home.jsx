@@ -9,7 +9,6 @@ const services = [
   { name: "Electrician", price: "₹199" },
 ];
 
-
 const professionals = [
   {
     name: "Jane S.",
@@ -36,40 +35,38 @@ const professionals = [
 
 const Home = () => {
   return (
-    <div className="bg-white min-h-screen text-gray-900">
-      
+    <div className="bg-gray-50 min-h-screen">
       {/* HERO */}
-      <section className="py-20 px-4 border-b">
+      <section className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-bold leading-tight">
             Find Trusted Professionals Near You
           </h1>
-          <p className="mt-4 text-lg text-gray-600">
+          <p className="mt-4 text-lg text-gray-200">
             Book reliable experts for all your needs
           </p>
 
           {/* SEARCH BAR */}
-          <div className="mt-8 flex flex-col md:flex-row items-center gap-3 bg-white border p-3 rounded-2xl shadow-md max-w-2xl mx-auto">
-            
+          <div className="mt-8 flex flex-col md:flex-row items-center gap-3 bg-white p-3 rounded-xl shadow-lg max-w-2xl mx-auto">
             <div className="flex items-center gap-2 w-full">
               <Search className="text-gray-400" />
               <input
                 type="text"
                 placeholder="Search services..."
-                className="w-full outline-none"
+                className="w-full outline-none text-gray-700"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full md:w-auto border-t md:border-t-0 md:border-l pt-2 md:pt-0 md:pl-3">
+            <div className="flex items-center gap-2 w-full md:w-auto">
               <MapPin className="text-gray-400" />
               <input
                 type="text"
                 placeholder="Location"
-                className="outline-none"
+                className="outline-none text-gray-700"
               />
             </div>
 
-            <button className="bg-black text-white px-6 py-2 rounded-xl hover:bg-gray-800 w-full md:w-auto">
+            <button className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 w-full md:w-auto">
               Search
             </button>
           </div>
@@ -86,18 +83,18 @@ const Home = () => {
           {services.map((service, i) => (
             <div
               key={i}
-              className="bg-white border p-6 rounded-2xl hover:shadow-lg transition cursor-pointer"
+              className="bg-white p-6 rounded-2xl shadow hover:shadow-xl transition cursor-pointer"
             >
               <h3 className="font-semibold text-lg">{service.name}</h3>
               <p className="text-sm text-gray-500 mt-2">Starting from</p>
-              <p className="text-black font-bold">{service.price}</p>
+              <p className="text-green-600 font-bold">{service.price}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* PROFESSIONALS */}
-      <section className="bg-gray-50 py-16">
+      <section className="bg-white py-16">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-2xl md:text-3xl font-bold mb-8">
             Top Professionals
@@ -107,7 +104,7 @@ const Home = () => {
             {professionals.map((pro, i) => (
               <div
                 key={i}
-                className="bg-white border rounded-2xl p-5 hover:shadow-xl transition"
+                className="border rounded-2xl p-5 hover:shadow-xl transition"
               >
                 <div className="flex items-center gap-4">
                   <img
@@ -129,7 +126,7 @@ const Home = () => {
                 </div>
 
                 <Link to={`/profile/${pro.name}`}>
-                  <button className="mt-4 w-full bg-black text-white py-2 rounded-xl hover:bg-gray-800">
+                  <button className="mt-4 w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700">
                     Hire Now
                   </button>
                 </Link>
@@ -140,7 +137,7 @@ const Home = () => {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-16">
+      <section className="bg-gray-100 py-16">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-10">
             How It Works
@@ -154,7 +151,7 @@ const Home = () => {
             ].map((item, i) => (
               <div
                 key={i}
-                className="border p-6 rounded-2xl hover:shadow-md transition"
+                className="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition"
               >
                 <h3 className="font-semibold text-lg">{item.title}</h3>
                 <p className="text-gray-500 mt-2">{item.desc}</p>
@@ -165,13 +162,13 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-black text-white py-16 text-center">
+      <section className="bg-indigo-600 text-white py-16 text-center">
         <h2 className="text-3xl font-bold">
           Ready to get your work done?
         </h2>
         <Link
           to="/role"
-          className="inline-block mt-6 bg-white text-black px-6 py-3 rounded-xl font-semibold hover:bg-gray-200"
+          className="inline-block mt-6 bg-white text-indigo-600 px-6 py-3 rounded-xl font-semibold hover:bg-gray-200"
         >
           Get Started
         </Link>
