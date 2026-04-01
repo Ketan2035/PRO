@@ -43,12 +43,9 @@ export default function Login({ isOpen, onClose }) {
       });
 
       const data = await res.json();
-
-      if (res.ok) {
-        alert("Login successful");
+      alert(data.message);
+      if(data.message=="OTP verified"){
         navigate("/");
-      } else {
-        alert(data.message || "Invalid OTP");
       }
     } catch (err) {
       console.log(err);
