@@ -26,7 +26,6 @@ const professionalSchema = new mongoose.Schema(
     profession: {
       type: String,
       required: true,
-      // enum: ["doctor", "plumber", "electrician", "cleaner", "other","developer"],
     },
 
     experience: {
@@ -41,17 +40,102 @@ const professionalSchema = new mongoose.Schema(
       trim: true,
     },
 
+    bio: {
+      type: String,
+      maxlength: 300,
+    },
+
     service_area: {
       type: String,
       required: true,
     },
 
-    bio: {
-      type: String,
-      maxlength: 300,
+    address: {
+      street: String,
+      city: String,
+      state: String,
+      pincode: String,
+      country: {
+        type: String,
+        default: "India",
+      },
     },
+
+    profileImage: {
+      url: String,
+      filename: String,
+    },
+
+    workImages: [
+      {
+        url: String,
+        filename: String,
+      },
+    ],
+
+    pricePerHour: {
+      type: Number,
+      default: 0,
+    },
+
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    totalReviews: {
+      type: Number,
+      default: 0,
+    },
+
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    idProof: {
+      type: {
+        type: String,
+        enum: ["Aadhar", "PAN", "Driving License"],
+      },
+      number: String,
+      image: {
+        url: String,
+        filename: String,
+      },
+    },
+
+    experienceCertificates: [
+      {
+        title: String,
+        image: {
+          url: String,
+          filename: String,
+        },
+      },
+    ],
+
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
+
+    workingHours: {
+      start: String,
+      end: String,
+    },
+
+    password: {
+      type: String,
+      required: true,
+    },
+
+    otp: String,
+    otpExpiry: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Professional", professionalSchema);
