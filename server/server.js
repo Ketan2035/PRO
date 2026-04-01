@@ -18,12 +18,8 @@ app.use(cors({
   origin: "http://localhost:5173"
 }));
 
-app.use("/users", userRoutes);
-// test route
-app.get("/ketan", (req, res) => {
-  console.log("route hit")
-  res.send("API is running...");
-});
+app.use("/api", userRoutes);
+
 
 // start server
 const PORT = process.env.PORT||5000;
