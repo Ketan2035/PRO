@@ -1,8 +1,25 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProRegister() {
+  const navigate = useNavigate();
+  const [message, setMessage] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    mob: "",
+    profession: "",
+    experience: "",
+    qualification: "",
+    service_area: "",
+    bio: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSendOtp = () => {
     setOtpSent(true);
@@ -10,6 +27,27 @@ export default function ProRegister() {
 
   const handleVerifyOtp = () => {
     alert("OTP Verified!");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Sending:", formData);
+
+    const res = await fetch("http://localhost:5000/users/pro_signup", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setMessage("Registered successfully!");
+      setTimeout(() => {
+        navigate("/");
+      }, 1500); // 1.5 sec delay
+    }
+    console.log(data);
   };
 
   return (
@@ -22,12 +60,18 @@ export default function ProRegister() {
           Create your profile and start getting clients today.
         </p>
 
-        <form className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
+          onSubmit={handleSubmit}
+        >
           {/* Full Name */}
           <div>
             <label className="block text-gray-700">Full Name</label>
             <input
               type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="Enter your full name"
             />
@@ -38,6 +82,9 @@ export default function ProRegister() {
             <label className="block text-gray-700">Email Address</label>
             <input
               type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="example@email.com"
             />
@@ -49,6 +96,9 @@ export default function ProRegister() {
             <div className="flex gap-3 mt-1">
               <input
                 type="tel"
+                name="mob"
+                value={formData.mob}
+                onChange={handleChange}
                 className="w-full  border rounded-lg focus:ring-2 focus:ring-green-500"
                 placeholder="+91 9876543210"
               />
@@ -84,7 +134,12 @@ export default function ProRegister() {
           {/* Profession */}
           <div>
             <label className="block text-gray-700">Profession</label>
-            <select className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500">
+            <select
+              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
+              name="profession"
+              value={formData.profession}
+              onChange={handleChange}
+            >
               <option>Select Profession</option>
               <option>Doctor</option>
               <option>Lawyer</option>
@@ -100,6 +155,9 @@ export default function ProRegister() {
             <label className="block text-gray-700">Experience (Years)</label>
             <input
               type="number"
+              name="experience"
+              value={formData.experience}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="e.g. 5"
             />
@@ -110,6 +168,9 @@ export default function ProRegister() {
             <label className="block text-gray-700">Qualification</label>
             <input
               type="text"
+              name="qualification"
+              value={formData.qualification}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="e.g. MBBS, ITI, B.Tech"
             />
@@ -117,9 +178,14 @@ export default function ProRegister() {
 
           {/* Service Area */}
           <div>
-            <label className="block text-gray-700">Service Area / Pincode</label>
+            <label className="block text-gray-700">
+              Service Area / Pincode
+            </label>
             <input
               type="text"
+              name="service_area"
+              value={formData.service_area}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               placeholder="e.g. 560001"
             />
@@ -129,6 +195,9 @@ export default function ProRegister() {
           <div className="md:col-span-2">
             <label className="block text-gray-700">Short Bio</label>
             <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
               className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               rows="3"
               placeholder="Tell clients about your experience and services..."
