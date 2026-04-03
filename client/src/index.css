@@ -1,5 +1,5 @@
 @import "tailwindcss";
 body{
-    @apply  bg-gradient-to-r from-purple-600 via-violet-600 to-fuchsia-500
+    @apply  bg-gradient-to-r from-gray-50 to-gray-50
 
 }

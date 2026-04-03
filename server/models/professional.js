@@ -131,9 +131,6 @@ const professionalSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    otp: String,
-    otpExpiry: Date,
   },
   { timestamps: true },
 );

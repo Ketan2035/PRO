@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "boxicons/css/boxicons.min.css";
 import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login({ isOpen, onClose }) {
   const [step, setStep] = useState("mobile");
@@ -15,20 +16,22 @@ export default function Login({ isOpen, onClose }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert("OTP sent successfully");
-        setStep("otp");
-      } else {
-        alert(data.message || "Error sending OTP");
+      if (!res.ok) {
+        toast.error(data.message || "Error sending OTP");
+        return;
       }
+
+      toast.success("OTP sent successfully");
+      setStep("otp");
     } catch (err) {
       console.log(err);
-      alert("Server error");
+      alert("Server error ketan");
     }
   };
 
@@ -39,13 +42,21 @@ export default function Login({ isOpen, onClose }) {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email, otp }),
       });
 
       const data = await res.json();
-      alert(data.message);
-      if(data.message=="OTP verified"){
-        navigate("/");
+
+      if (res.ok && data.success) {
+        toast.success("OTP verified");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1000);
+      } else {
+        toast.error(data.message);
       }
     } catch (err) {
       console.log(err);
@@ -55,7 +66,6 @@ export default function Login({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white p-6 rounded-2xl shadow-2xl w-[90%] max-w-md text-black relative border border-gray-200">
-        
         <button
           className="absolute top-3 right-3 text-black hover:text-gray-600"
           onClick={() => navigate("/")}
@@ -90,9 +100,12 @@ export default function Login({ isOpen, onClose }) {
             <div className="flex justify-end text-sm">
               <span>
                 Don’t have an account?{" "}
-                <Link to="/role" className="text-black font-semibold underline">
+                <button
+                  to="/role"
+                  className="text-black font-semibold underline"
+                >
                   Register
-                </Link>
+                </button>
               </span>
             </div>
           </div>
