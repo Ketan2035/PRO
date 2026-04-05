@@ -1,7 +1,6 @@
 import Customer from "../models/customer.js";
 import Professional from "../models/professional.js";
-import nodemailer from "nodemailer";
-import OTP from "../models/otp.js";
+import generateToken from "../utils/generateToken.js";
 
 export const registerCustomer = async (req, res) => {
   try {
@@ -15,10 +14,11 @@ export const registerCustomer = async (req, res) => {
       address,
     });
     await newCustomer.save();
+    generateToken(newCustomer._id, res);
     console.log("register");
     res.status(201).json({
       message: "User created successfully",
-      customer: newCustomer,
+      user: newCustomer,
     });
   } catch (error) {
     console.log(error);
@@ -63,5 +63,20 @@ export const registerPro = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const sendData = async (req, res) => {
+  try {
+    const user = await Customer.findById(req.user.id); 
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

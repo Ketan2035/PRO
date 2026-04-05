@@ -15,11 +15,23 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/me", {
+        credentials: "include", 
+      });
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setUser(data.user); 
+    } catch (err) {
+      setUser(null);
     }
-  }, []);
+  };
+
+  checkAuth();
+}, []);
 
   const logout = async () => {
     await fetch("http://localhost:5000/api/logout", {

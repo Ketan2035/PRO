@@ -1,6 +1,6 @@
 import express from "express";
 import { sendMail, verifyOtp ,logout } from "../controllers/auth.js";
-import { registerCustomer, registerPro } from "../controllers/user.js";
+import { registerCustomer, registerPro,sendData } from "../controllers/user.js";
 import {isUserRegistered} from "../middleware/isUserRegistered.js"
 import {isLoggedIn} from "../middleware/isUserLoggedIn.js"
 
@@ -16,7 +16,7 @@ userRoutes.post("/login",isUserRegistered, sendMail,);
 userRoutes.post("/verify",verifyOtp);
 
 //stay logged check route
-userRoutes.get("/me",isLoggedIn);
+userRoutes.get("/me",isLoggedIn,sendData);
 //logout
 userRoutes.post("/logout",logout)
 

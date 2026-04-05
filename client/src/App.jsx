@@ -9,6 +9,7 @@ import ProRegister from './pages/Professionalregister';
 import Footer from './component/Footer';
 import ProfessionalDetail from './component/professionalDetail';
 import {Toaster} from "react-hot-toast";
+import Profile from './pages/user';
 // import HomeSections from './pages/About';
 
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/role" element={<RoleSelection/>} />
           <Route path="/customer_signup" element={<CustomerRegister/>} />
           <Route path="/pro_signup" element={<ProRegister/>} />
+          <Route path="/profile" element={<Profile/>} />
           <Route path="/profile/:id" element={<ProfessionalDetail/>} />
         </Routes>
         <Footer/>

@@ -33,7 +33,7 @@ export default function ProRegister() {
     e.preventDefault();
     console.log("Sending:", formData);
 
-    const res = await fetch("http://localhost:5000/users/pro_signup", {
+    const res = await fetch("http://localhost:5000/api/pro_signup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

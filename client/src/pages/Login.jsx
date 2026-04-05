@@ -101,7 +101,7 @@ export default function Login({ isOpen, onClose }) {
               <span>
                 Don’t have an account?{" "}
                 <button
-                  to="/role"
+                  onClick={() => navigate("/role")}
                   className="text-black font-semibold underline"
                 >
                   Register

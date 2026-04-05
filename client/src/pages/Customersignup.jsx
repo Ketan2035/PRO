@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function CustomerRegister() {
   const navigate = useNavigate();
@@ -30,34 +31,47 @@ export default function CustomerRegister() {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     setGeneratedOtp(otp);
     setOtpSent(true);
-    alert(`OTP Sent: ${otp} (demo only)`); // Real app → backend sends SMS/email
+    alert(`OTP Sent: ${otp} (demo only)`);
   };
 
   // Verify OTP
   const verifyOtp = () => {
     if (formData.otp === generatedOtp) {
       setOtpVerified(true);
-      alert("✅ OTP Verified Successfully");
+      alert(" OTP Verified Successfully");
     } else {
-      alert("❌ Invalid OTP");
+      alert(" Invalid OTP");
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/customer_signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
 
-    console.log("Sending:", formData);
+      const data = await res.json();
 
-    const res = await fetch("http://localhost:5000/users/customer_signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-    console.log(data);
+      if (res.ok) {
+        toast.success("User registered successful");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1000);
+      } else {
+        alert(data.message || "Error");
+      }
+    } catch (err) {
+      console.log(err);
+      alert("Server error");
+    }
   };
 
   return (
@@ -190,7 +204,6 @@ export default function CustomerRegister() {
           <div className="md:col-span-2">
             <button
               type="submit"
-              onClick={() => navigate("/")}
               disabled={!otpVerified}
               className={`w-full py-3 rounded-xl font-semibold transition shadow-lg ${
                 otpVerified

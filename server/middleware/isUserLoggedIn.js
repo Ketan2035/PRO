@@ -13,7 +13,7 @@ export const isLoggedIn = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
 
-    req.user = decoded; // contains user id
+    req.user = decoded; 
     next();
 
   } catch (error) {
