@@ -14,13 +14,19 @@ const customerSchema = new mongoose.Schema({
     required: true,
     match: [/^\+?[0-9]{10,15}$/, "Please enter a valid phone number"],
   },
-  city:{
-    type:String,
-    required:true
+  city: {
+    type: String,
+    required: true,
   },
-  address:{
-    type:String
-  }
+  address: [
+    {
+      type: String,
+    },
+  ],
+  profileImage: {
+    url: String,
+    filename: String,
+  },
 });
 
-export default mongoose.model("Customer" ,customerSchema);
+export default mongoose.model("Customer", customerSchema);

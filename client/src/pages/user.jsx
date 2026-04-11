@@ -1,14 +1,33 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function CustomerProfile() {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState("profile");
   const [edit, setEdit] = useState(false);
+  const navigate = useNavigate();
+  const [addresses, setAddresses] = useState([]);
 
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    setUser(storedUser);
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/me", {
+          credentials: "include",
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          setUser(data.user);
+          setAddresses(data.user.address || []);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   const handleChange = (e) => {
@@ -20,6 +39,31 @@ export default function CustomerProfile() {
     toast.success("Profile updated!");
     setEdit(false);
   };
+  const handleDelete = async (index) => {
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/user/address/${index}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Address deleted");
+
+        // update UI instantly
+        setAddresses((prev) => prev.filter((_, i) => i !== index));
+      } else {
+        toast.error(data.message || "Failed to delete");
+      }
+    } catch (error) {
+      toast.error("Something went wrong");
+      console.error(error);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -30,33 +74,47 @@ export default function CustomerProfile() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-
       {/* sidebar */}
       <div className="w-64 bg-white shadow p-4">
         <h2 className="text-xl font-bold mb-6">My Account</h2>
 
         <ul className="space-y-3">
-          <li onClick={() => setActiveTab("profile")} className="cursor-pointer hover:text-blue-500">Profile</li>
-          <li onClick={() => setActiveTab("orders")} className="cursor-pointer hover:text-blue-500">My Bookings</li>
-          <li onClick={() => setActiveTab("address")} className="cursor-pointer hover:text-blue-500">Address</li>
-          <li onClick={() => setActiveTab("settings")} className="cursor-pointer hover:text-blue-500">Settings</li>
+          <li
+            onClick={() => setActiveTab("profile")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Profile
+          </li>
+          <li
+            onClick={() => setActiveTab("orders")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            My Bookings
+          </li>
+          <li
+            onClick={() => setActiveTab("address")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Address
+          </li>
+          <li
+            onClick={() => setActiveTab("settings")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Settings
+          </li>
         </ul>
 
-        <button
-          onClick={handleLogout}
-          className="mt-10 text-red-500"
-        >
+        <button onClick={handleLogout} className="mt-10 text-red-500">
           Logout
         </button>
       </div>
 
       {/*main part */}
       <div className="flex-1 p-6">
-
         {/* PROFILE TAB */}
         {activeTab === "profile" && (
           <div className="bg-white p-6 rounded-xl shadow">
-
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 bg-blue-500 text-white flex items-center justify-center rounded-full text-xl">
                 {user.name?.charAt(0)}
@@ -90,15 +148,20 @@ export default function CustomerProfile() {
             />
 
             {!edit ? (
-              <button onClick={() => setEdit(true)} className="bg-blue-500 text-white px-4 py-2 rounded">
+              <button
+                onClick={() => setEdit(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
                 Edit
               </button>
             ) : (
-              <button onClick={handleSave} className="bg-green-500 text-white px-4 py-2 rounded">
+              <button
+                onClick={handleSave}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
                 Save
               </button>
             )}
-
           </div>
         )}
 
@@ -128,15 +191,35 @@ export default function CustomerProfile() {
         {/* address*/}
         {activeTab === "address" && (
           <div className="bg-white p-6 rounded-xl shadow">
-            <h2 className="text-lg font-semibold mb-4">Saved Address</h2>
+            <h2 className="text-lg font-semibold mb-4">Saved Addresses</h2>
 
-            <textarea
-              placeholder="Enter your address"
-              className="w-full border p-3 rounded"
-            />
+            {addresses.length === 0 ? (
+              <p className="text-gray-500">No address saved</p>
+            ) : (
+              addresses.map((addr, index) => (
+                <div
+                  key={index}
+                  className="border p-3 rounded mb-3 flex justify-between items-start"
+                >
+                  <div>
+                    <p>{addr}</p>
+                  </div>
 
-            <button className="mt-3 bg-blue-500 text-white px-4 py-2 rounded">
-              Save Address
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))
+            )}
+
+            <button
+              onClick={() => navigate("/profile/address/add_address")}
+              className="mt-3 bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              + Add Address
             </button>
           </div>
         )}
@@ -155,7 +238,6 @@ export default function CustomerProfile() {
             </button>
           </div>
         )}
-
       </div>
     </div>
   );

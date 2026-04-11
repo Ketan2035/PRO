@@ -7,7 +7,6 @@ const professionalSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     email: {
       type: String,
       required: true,
@@ -22,7 +21,7 @@ const professionalSchema = new mongoose.Schema(
       unique: true,
       match: [/^\+?[0-9]{10,15}$/, "Invalid phone number"],
     },
-
+    
     profession: {
       type: String,
       required: true,

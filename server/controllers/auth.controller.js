@@ -1,5 +1,5 @@
-import Customer from "../models/customer.js";
-import Professional from "../models/professional.js";
+import Customer from "../models/customerSchema.js";
+import Professional from "../models/professionalSchema.js";
 import nodemailer from "nodemailer";
 import OTP from "../models/otp.js";
 import generateToken from "../utils/generateToken.js";

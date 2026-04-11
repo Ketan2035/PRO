@@ -1,5 +1,5 @@
-import Customer from "../models/customer.js";
-import Professional from "../models/professional.js";
+import Customer from "../models/customerSchema.js";
+import Professional from "../models/professionalSchema.js";
 
 export const isUserRegistered = async (req, res, next) => {
   try {

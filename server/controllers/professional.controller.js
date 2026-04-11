@@ -1,4 +1,4 @@
-import Professional from "../models/professional.js";
+import Professional from "../models/professionalSchema.js";
 
 export const getProfessionals = async (req, res) => {
   try {
