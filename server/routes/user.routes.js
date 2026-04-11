@@ -2,7 +2,7 @@ import express from "express";
 import { sendMail, verifyOtp ,logout } from "../controllers/auth.controller.js";
 import { registerCustomer, registerPro,sendData ,addAddress,deleteAddress} from "../controllers/user.controller.js";
 import {isUserRegistered} from "../middleware/isUserRegistered.js"
-import {isLoggedIn} from "../middleware/isUserLoggedIn.js"
+import {isLoggedIn} from "../middleware/isUserLoggedIn.js";
 
 const userRoutes = express.Router();
 

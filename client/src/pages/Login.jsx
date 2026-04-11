@@ -64,7 +64,7 @@ export default function Login({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <div className="bg-white p-6 rounded-2xl shadow-2xl w-[90%] max-w-md text-black relative border border-gray-200">
         <button
           className="absolute top-3 right-3 text-black hover:text-gray-600"

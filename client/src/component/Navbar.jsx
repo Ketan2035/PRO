@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "boxicons/css/boxicons.min.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function Navbar() {
@@ -9,29 +9,30 @@ export default function Navbar() {
   const [dropdown, setDropdown] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handelclick = () => {
     setIsOpen((prev) => !prev);
   };
 
   useEffect(() => {
-  const checkAuth = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/me", {
-        credentials: "include", 
-      });
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/me", {
+          credentials: "include",
+        });
 
-      if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error();
 
-      const data = await res.json();
-      setUser(data.user); 
-    } catch (err) {
-      setUser(null);
-    }
-  };
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        setUser(null);
+      }
+    };
 
-  checkAuth();
-}, []);
+    checkAuth();
+  }, []);
 
   const logout = async () => {
     await fetch("http://localhost:5000/api/logout", {
@@ -104,9 +105,16 @@ export default function Navbar() {
                 )}
               </>
             ) : (
-              <Link to="/login" className="bx bx-log-in">
+              <button
+                onClick={() =>
+                  navigate(`/login`, {
+                    state: { backgroundLocation: location },
+                  })
+                }
+                className="bx bx-log-in"
+              >
                 Login/Signup
-              </Link>
+              </button>
             )}
           </li>
         </ul>

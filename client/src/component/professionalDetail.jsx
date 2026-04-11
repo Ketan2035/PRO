@@ -1,12 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Star, MapPin } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
+
 
 const ProfessionalDetail = () => {
   const { id } = useParams();
   const [pro, setPro] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const handleBookNow = () => {
+    const user = JSON.parse(localStorage.getItem("user"));
 
+    if (!user) {
+      return toast.error("Please do login first");
+    }
+
+    navigate(`/checkout/${pro._id}`, {
+      state: { backgroundLocation: location },
+    });
+  };
   useEffect(() => {
     fetch(`http://localhost:5000/api/professionals/${id}`)
       .then((res) => res.json())
@@ -25,10 +40,8 @@ const ProfessionalDetail = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
-
       {/* TOP SECTION */}
       <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6">
-        
         <img
           src={pro.profileImage?.url}
           alt={pro.name}
@@ -52,11 +65,18 @@ const ProfessionalDetail = () => {
           <p className="mt-4 text-gray-700">{pro.bio}</p>
 
           <div className="mt-4 flex gap-6 text-sm">
-            <p><b>Experience:</b> {pro.experience} years</p>
-            <p><b>Price:</b> ₹{pro.pricePerHour}/hr</p>
+            <p>
+              <b>Experience:</b> {pro.experience} years
+            </p>
+            <p>
+              <b>Price:</b> ₹{pro.pricePerHour}/hr
+            </p>
           </div>
 
-          <button className="mt-6 bg-black text-white px-6 py-2 rounded-xl hover:bg-gray-800">
+          <button
+            onClick={handleBookNow}
+            className="mt-6 bg-black text-white px-6 py-2 rounded-xl hover:bg-gray-800"
+          >
             Book Now
           </button>
         </div>
@@ -85,14 +105,24 @@ const ProfessionalDetail = () => {
         <h2 className="text-xl font-semibold mb-4">Details</h2>
 
         <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
-          <p><b>Qualification:</b> {pro.qualification}</p>
-          <p><b>Service Area:</b> {pro.service_area}</p>
-          <p><b>Total Reviews:</b> {pro.totalReviews}</p>
-          <p><b>Available:</b> {pro.isAvailable ? "Yes" : "No"}</p>
-          <p><b>Working Hours:</b> {pro.workingHours?.start} - {pro.workingHours?.end}</p>
+          <p>
+            <b>Qualification:</b> {pro.qualification}
+          </p>
+          <p>
+            <b>Service Area:</b> {pro.service_area}
+          </p>
+          <p>
+            <b>Total Reviews:</b> {pro.totalReviews}
+          </p>
+          <p>
+            <b>Available:</b> {pro.isAvailable ? "Yes" : "No"}
+          </p>
+          <p>
+            <b>Working Hours:</b> {pro.workingHours?.start} -{" "}
+            {pro.workingHours?.end}
+          </p>
         </div>
       </div>
-
     </div>
   );
 };
