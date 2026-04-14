@@ -79,7 +79,7 @@ export const verifyOtp = async (req, res) => {
     }
     const result = await verifyOTP(email, otp);
     if (result.message == "OTP verified") {
-      await generateToken(user._id, res);
+      await generateToken(user, res);
     }
     console.log("mai second user hu", user);
     result.user = user;

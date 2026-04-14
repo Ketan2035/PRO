@@ -10,9 +10,7 @@ export const isLoggedIn = (req, res, next) => {
         message: "User not logged in",
       });
     }
-
     const decoded = jwt.verify(token, process.env.SECRET_KEY);
-
     req.user = decoded; 
     next();
 

@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [dropdown, setDropdown] = useState(false);
+  const [role, setRole] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,12 +22,18 @@ export default function Navbar() {
           credentials: "include",
         });
 
-        if (!res.ok) throw new Error();
-
         const data = await res.json();
-        setUser(data.user);
+
+        if (data.success) {
+          setUser(data.user);
+          setRole(data.role);
+        } else {
+          setUser(null);
+          setRole(null);
+        }
       } catch (err) {
         setUser(null);
+        setRole(null);
       }
     };
 
@@ -41,8 +47,10 @@ export default function Navbar() {
     });
 
     localStorage.removeItem("user");
-    toast.success("Logged out successfully");
+    toast.success("Logged out");
     setUser(null);
+    setRole(null);
+
     setTimeout(() => {
       navigate("/");
       window.location.reload();
@@ -52,10 +60,12 @@ export default function Navbar() {
   return (
     <header className="z-50 sticky top-0">
       <nav className="flex justify-between items-center px-6 py-4 bg-blue-200 shadow-md">
+        {/* LOGO */}
         <h1 className="text-2xl font-bold flex items-center gap-2 text-black">
           <i className="bx bx-user-circle text-3xl"></i> ProConnect
         </h1>
 
+        {/* DESKTOP MENU */}
         <ul className="hidden lg:flex gap-6 font-medium text-black items-center">
           <li>
             <Link to="/" className="bx bx-home">
@@ -76,38 +86,23 @@ export default function Navbar() {
             </Link>
           </li>
 
-          <li className="relative">
+          {/* USER */}
+          <li>
             {user ? (
-              <>
-                <img
-                  src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                  alt="profile"
-                  className="w-10 h-10 rounded-full cursor-pointer"
-                  onClick={() => setDropdown(!dropdown)}
-                />
-
-                {dropdown && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg border text-black">
-                    <button
-                      onClick={() => navigate("/profile")}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Profile
-                    </button>
-
-                    <button
-                      onClick={logout}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-500"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </>
+              <img
+                src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
+                alt="profile"
+                className="w-10 h-10 rounded-full cursor-pointer"
+                onClick={() =>
+                  navigate(
+                    role === "professional" ? "/profile/pro" : "/profile/customer",
+                  )
+                }
+              />
             ) : (
               <button
                 onClick={() =>
-                  navigate(`/login`, {
+                  navigate("/login", {
                     state: { backgroundLocation: location },
                   })
                 }
@@ -119,11 +114,13 @@ export default function Navbar() {
           </li>
         </ul>
 
+        {/* MOBILE MENU ICON */}
         <div className="lg:hidden" onClick={handelclick}>
           <i className={isOpen ? "bx bx-x" : "bx bx-menu"}></i>
         </div>
       </nav>
 
+      {/* MOBILE MENU */}
       {isOpen && (
         <ul className="lg:hidden bg-black p-4 flex flex-col gap-4 font-medium text-white">
           <li>
@@ -145,7 +142,16 @@ export default function Navbar() {
           <li>
             {user ? (
               <>
-                <button onClick={() => navigate("/profile")}>Profile</button>
+                <button
+                  onClick={() =>
+                    navigate(
+                      role === "professional" ? "/profile/pro" : "/profile/customer",
+                    )
+                  }
+                >
+                  Profile
+                </button>
+
                 <button onClick={logout} className="text-red-400">
                   Logout
                 </button>

@@ -12,9 +12,10 @@ export const registerCustomer = async (req, res) => {
       mob_no: mobile,
       city,
       address,
+      role: "customer",
     });
     await newCustomer.save();
-    generateToken(newCustomer._id, res);
+    generateToken(newCustomer, res);
     console.log("register");
     res.status(201).json({
       message: "User created successfully",
@@ -26,47 +27,7 @@ export const registerCustomer = async (req, res) => {
   }
 };
 
-export const registerPro = async (req, res) => {
-  try {
-    console.log("BODY:", req.body);
-
-    const {
-      name,
-      email,
-      mob,
-      profession,
-      experience,
-      qualification,
-      service_area,
-      bio,
-    } = req.body;
-
-    const newProfessional = new Professional({
-      name,
-      email,
-      mob,
-      profession,
-      experience,
-      qualification,
-      service_area,
-      bio,
-    });
-
-    await newProfessional.save();
-
-    console.log("register");
-
-    res.status(201).json({
-      message: "User created successfully",
-      newProfessional,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-export const sendData = async (req, res) => {
+export const sendCustomerData = async (req, res) => {
   try {
     const user = await Customer.findById(req.user.id);
     res.json({
@@ -138,5 +99,34 @@ export const deleteAddress = async (req, res) => {
       success: false,
       message: err.message,
     });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    const { id, role } = req.user;
+
+    let user = null;
+
+    if (role === "customer") {
+      user = await Customer.findById(id);
+    } else if (role === "professional") {
+      user = await Professional.findById(id);
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+      role,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

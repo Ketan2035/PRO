@@ -25,6 +25,7 @@ connectDb();
 app.use("/api", userRoutes);
 app.use("/api", bookingRoutes);
 app.use("/api/professionals", professionalRoutes);
+app.use("/api",professionalRoutes);
 
 // start server
 const PORT = process.env.PORT || 5000;

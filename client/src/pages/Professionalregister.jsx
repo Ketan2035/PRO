@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
 
 export default function ProRegister() {
   const navigate = useNavigate();
@@ -30,24 +32,34 @@ export default function ProRegister() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log("Sending:", formData);
+    try {
+      e.preventDefault();
+      console.log("Sending:", formData);
 
-    const res = await fetch("http://localhost:5000/api/pro_signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setMessage("Registered successfully!");
-      setTimeout(() => {
-        navigate("/");
-      }, 1500); // 1.5 sec delay
+      const res = await fetch("http://localhost:5000/api/pro_signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Registered successfully!");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1500);
+      } else {
+        toast.error("server error");
+      }
+      console.log(data);
+    } catch (err) {
+      console.log(err);
+      toast.error("server error");
     }
-    console.log(data);
   };
 
   return (

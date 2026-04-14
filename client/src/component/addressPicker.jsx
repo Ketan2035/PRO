@@ -22,7 +22,7 @@ export default function AddressPicker() {
       const data = await res.json();
       if (data.success) {
         toast.success("Address added successfully");
-        navigate("/profile");
+        navigate(-1);
       } else {
         toast.error(data.message || "Failed to add address");
       }

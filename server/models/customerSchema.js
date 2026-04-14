@@ -27,6 +27,11 @@ const customerSchema = new mongoose.Schema({
     url: String,
     filename: String,
   },
+  role: {
+    type: String,
+    enum: ["customer", "professional"],
+    default: "customer",
+  },
 });
 
 export default mongoose.model("Customer", customerSchema);

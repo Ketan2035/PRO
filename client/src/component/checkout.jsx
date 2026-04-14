@@ -11,19 +11,59 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [loading, setLoading] = useState(true);
 
+  //  Check login get addresses
   useEffect(() => {
-    fetch(`http://localhost:5000/api/professionals/${id}`)
-      .then((res) => res.json())
-      .then((data) => setPro(data.data));
+    const checkUser = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/me", {
+          credentials: "include",
+        });
 
-    fetch("http://localhost:5000/api/me", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setAddresses(data.user.address || []);
-      });
+        const data = await res.json();
+
+        if (!data.success) {
+          toast.error("Please login first");
+          navigate("/login");
+        } else {
+          setAddresses(data.user?.address || []);
+        }
+        if(data.role=="professional"){
+          toast.error("Only customer are allowed");
+          navigate("/");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("User fetch failed");
+      }
+    };
+
+    checkUser();
+  }, [navigate]);
+
+  // Fetch professional
+  useEffect(() => {
+    const fetchPro = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/professionals/${id}`,
+        );
+        const data = await res.json();
+
+        console.log("PRO DATA:", data); // debug
+
+        // adjust if backend key is different
+        setPro(data.user || data.professional || null);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load professional");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPro();
   }, [id]);
 
   const handleBooking = async () => {
@@ -31,85 +71,114 @@ const Checkout = () => {
       return toast.error("Fill all fields");
     }
 
-    const res = await fetch("http://localhost:5000/api/booking", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        professionalId: pro._id,
-        service: pro.profession,
-        address: selectedAddress,
-        date: selectedDate,
-        time: selectedTime,
-      }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/api/booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          professionalId: pro?._id,
+          service: pro?.profession,
+          address: selectedAddress,
+          date: selectedDate,
+          time: selectedTime,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.success) {
-      toast.success("Booking Confirmed");
-      navigate(-1);
-    } else {
-      toast.error(data.message);
+      if (data.success) {
+        toast.success("Booking Confirmed 🎉");
+        navigate("/");
+      } else {
+        toast.error(data.message || "Booking failed");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong");
     }
   };
 
-  if (!pro) return null;
+  //  Safe loading (prevents crash)
+  if (loading || !pro) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-xl">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-      <div className="bg-white w-full max-w-4xl rounded-xl p-6 relative">
-        
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-3 right-4 text-xl"
-        >
-          ✕
-        </button>
+    <div className="min-h-screen bg-gray-100 p-6">
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold">Checkout</h1>
+        <p className="text-sm text-gray-500">Home / Checkout</p>
+      </div>
 
-        <h2 className="text-xl font-semibold mb-4">Checkout</h2>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          
-          {/* LEFT */}
-          <div>
-            <h3 className="mb-2 font-medium">Address</h3>
-
-            {addresses.map((addr, i) => (
-              <label
-                key={i}
-                className={`block border p-2 mb-2 cursor-pointer ${
-                  selectedAddress === addr ? "border-black bg-gray-100" : ""
-                }`}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* LEFT */}
+        <div className="md:col-span-2 space-y-4">
+          {/* ADDRESS */}
+          <div className="bg-white p-5 rounded-xl shadow">
+            <div className="flex justify-between mb-3">
+              <h3 className="font-semibold">Select Address</h3>
+              <button
+                onClick={() => navigate("/profile/address/add_address")}
+                className="text-blue-500 text-sm"
               >
-                <input
-                  type="radio"
-                  name="address"
-                  value={addr}
-                  checked={selectedAddress === addr}
-                  onChange={(e) => setSelectedAddress(e.target.value)}
-                  className="mr-2"
-                />
-                {addr}
-              </label>
-            ))}
+                + Add New
+              </button>
+            </div>
+
+            {addresses.length === 0 ? (
+              <p className="text-gray-500 text-sm">No address found</p>
+            ) : (
+              addresses.map((addr, i) => (
+                <label
+                  key={i}
+                  className={`block border p-3 mb-2 rounded-lg cursor-pointer ${
+                    selectedAddress === addr
+                      ? "border-black bg-gray-100"
+                      : "hover:border-gray-400"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="address"
+                    value={addr}
+                    checked={selectedAddress === addr}
+                    onChange={(e) => setSelectedAddress(e.target.value)}
+                    className="mr-2"
+                  />
+                  {addr}
+                </label>
+              ))
+            )}
+          </div>
+
+          {/* DATE & TIME */}
+          <div className="bg-white p-5 rounded-xl shadow">
+            <h3 className="font-semibold mb-3">Select Date & Time</h3>
 
             <input
               type="date"
               value={selectedDate}
-              className="w-full border p-2 mt-3"
+              className="w-full border p-2 rounded mb-4"
               onChange={(e) => setSelectedDate(e.target.value)}
             />
 
-            <div className="grid grid-cols-3 gap-2 mt-2">
-              {["10AM", "12PM", "3PM"].map((t) => (
+            <div className="flex gap-2 flex-wrap">
+              {["10AM", "12PM", "3PM", "6PM"].map((t) => (
                 <button
                   key={t}
                   onClick={() => setSelectedTime(t)}
-                  className={`border p-2 ${
-                    selectedTime === t ? "bg-black text-white" : ""
+                  className={`px-4 py-2 border rounded-lg ${
+                    selectedTime === t
+                      ? "bg-black text-white"
+                      : "hover:bg-gray-200"
                   }`}
                 >
                   {t}
@@ -117,23 +186,57 @@ const Checkout = () => {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* RIGHT */}
-          <div>
-            <p className="font-semibold">{pro.name}</p>
-            <p>{pro.profession}</p>
+        {/* RIGHT (SUMMARY) */}
+        <div>
+          <div className="bg-white p-5 rounded-xl shadow sticky top-6">
+            <h3 className="font-semibold mb-3">Order Summary</h3>
 
-            <div className="mt-3 text-sm space-y-1">
-              <p><b>Address:</b> {selectedAddress || "Not selected"}</p>
-              <p><b>Date:</b> {selectedDate || "Not selected"}</p>
-              <p><b>Time:</b> {selectedTime || "Not selected"}</p>
+            <div className="border-b pb-3 mb-3">
+              <p className="font-medium">{pro?.name}</p>
+              <p className="text-sm text-gray-500">{pro?.profession}</p>
             </div>
 
-            <p className="mt-2 font-semibold">₹{pro.pricePerHour}</p>
+            <div className="text-sm space-y-2">
+              <p>
+                <b>Address:</b> {selectedAddress || "Not selected"}
+              </p>
+              <p>
+                <b>Date:</b> {selectedDate || "Not selected"}
+              </p>
+              <p>
+                <b>Time:</b> {selectedTime || "Not selected"}
+              </p>
+            </div>
+
+            <hr className="my-4" />
+
+            <div className="flex justify-between text-sm">
+              <span>Service Fee</span>
+              <span>₹{pro?.pricePerHour || 0}</span>
+            </div>
+
+            <div className="flex justify-between text-sm">
+              <span>Platform Fee</span>
+              <span>₹20</span>
+            </div>
+
+            <hr className="my-4" />
+
+            <div className="flex justify-between font-semibold text-lg">
+              <span>Total</span>
+              <span>₹{(pro?.pricePerHour || 0) + 20}</span>
+            </div>
 
             <button
               onClick={handleBooking}
-              className="w-full mt-4 bg-green-500 text-white py-2"
+              disabled={!selectedAddress || !selectedDate || !selectedTime}
+              className={`w-full mt-5 py-3 rounded-lg font-semibold ${
+                selectedAddress && selectedDate && selectedTime
+                  ? "bg-yellow-500 hover:bg-yellow-600"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
             >
               Confirm Booking
             </button>

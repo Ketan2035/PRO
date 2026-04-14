@@ -1,13 +1,14 @@
 import mongoose from "mongoose";
 
+
 const bookingSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Customer",
   },
   professional: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Professional",
   },
   service: String,
   price: Number,

@@ -18,15 +18,13 @@ const ProfessionalDetail = () => {
       return toast.error("Please do login first");
     }
 
-    navigate(`/checkout/${pro._id}`, {
-      state: { backgroundLocation: location },
-    });
+    navigate(`/checkout/${pro._id}`);
   };
   useEffect(() => {
     fetch(`http://localhost:5000/api/professionals/${id}`)
       .then((res) => res.json())
       .then((data) => {
-        setPro(data.data);
+        setPro(data.user);
         setLoading(false);
       })
       .catch((err) => {

@@ -21,7 +21,11 @@ const professionalSchema = new mongoose.Schema(
       unique: true,
       match: [/^\+?[0-9]{10,15}$/, "Invalid phone number"],
     },
-    
+    role: {
+      type: String,
+      enum: ["customer", "professional"],
+      default: "professional",
+    },
     profession: {
       type: String,
       required: true,
@@ -128,7 +132,6 @@ const professionalSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true },
