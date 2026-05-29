@@ -1,15 +1,24 @@
-import mongoose from "mongoose"
-import dotenv from "dotenv"
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
 dotenv.config();
 
-const connectDb=async()=>{
-    try{
-        await mongoose.connect("mongodb+srv://ketanrs59_db_user:ketan59@cluster0.fmplo3s.mongodb.net/?appName=Cluster0");
-        console.log("Databse connected succesfully");
-    }catch(error){
-        console.error("DB Error:", error.message);
-        process.exit(1);
-    }
-}
+let isConnected = false;
 
-export default  connectDb;
+const connectDb = async () => {
+    try {
+        if (isConnected) return;
+
+        const db = await mongoose.connect(process.env.MONGO_URL);
+
+        isConnected = db.connections[0].readyState === 1;
+
+        console.log("Database connected successfully");
+
+    } catch (error) {
+        console.error("DB Error:", error.message);
+        throw error;
+    }
+};
+
+export default connectDb;

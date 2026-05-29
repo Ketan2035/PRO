@@ -4,7 +4,6 @@ import { Star, MapPin } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 
-
 const ProfessionalDetail = () => {
   const { id } = useParams();
   const [pro, setPro] = useState(null);
@@ -21,7 +20,7 @@ const ProfessionalDetail = () => {
     navigate(`/checkout/${pro._id}`);
   };
   useEffect(() => {
-    fetch(`http://localhost:5000/api/professionals/${id}`)
+    fetch(`https://pro-backend-gray.vercel.app/api/professionals/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setPro(data.user);

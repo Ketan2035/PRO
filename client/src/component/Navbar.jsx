@@ -18,7 +18,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/me", {
+        const res = await fetch("https://pro-backend-gray.vercel.app/api/me", {
           credentials: "include",
         });
 
@@ -41,7 +41,7 @@ export default function Navbar() {
   }, []);
 
   const logout = async () => {
-    await fetch("http://localhost:5000/api/logout", {
+    await fetch("https://pro-backend-gray.vercel.app/api/logout", {
       method: "POST",
       credentials: "include",
     });
@@ -62,7 +62,7 @@ export default function Navbar() {
       <nav className="flex justify-between items-center px-6 py-4 bg-blue-200 shadow-md">
         {/* LOGO */}
         <h1 className="text-2xl font-bold flex items-center gap-2 text-black">
-          <i className="bx bx-user-circle text-3xl"></i> ProConnect
+          <i className="bx bx-user-circle text-3xl"></i> Urban Saathi
         </h1>
 
         {/* DESKTOP MENU */}
@@ -95,7 +95,9 @@ export default function Navbar() {
                 className="w-10 h-10 rounded-full cursor-pointer"
                 onClick={() =>
                   navigate(
-                    role === "professional" ? "/profile/pro" : "/profile/customer",
+                    role === "professional"
+                      ? "/profile/pro"
+                      : "/profile/customer",
                   )
                 }
               />
@@ -145,7 +147,9 @@ export default function Navbar() {
                 <button
                   onClick={() =>
                     navigate(
-                      role === "professional" ? "/profile/pro" : "/profile/customer",
+                      role === "professional"
+                        ? "/profile/pro"
+                        : "/profile/customer",
                     )
                   }
                 >

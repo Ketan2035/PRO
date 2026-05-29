@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    origin: true,
     credentials: true,
   }),
 );
@@ -28,7 +28,5 @@ app.use("/api/professionals", professionalRoutes);
 app.use("/api",professionalRoutes);
 
 // start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// const PORT = process.env.PORT || 5000;
+export default app;

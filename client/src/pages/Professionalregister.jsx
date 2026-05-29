@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-
 export default function ProRegister() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
@@ -36,14 +35,17 @@ export default function ProRegister() {
       e.preventDefault();
       console.log("Sending:", formData);
 
-      const res = await fetch("http://localhost:5000/api/pro_signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        "https://pro-backend-gray.vercel.app/api/pro_signup",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(formData),
         },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
+      );
       const data = await res.json();
       if (res.ok) {
         toast.success("Registered successfully!");

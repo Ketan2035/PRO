@@ -17,7 +17,7 @@ const Checkout = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/me", {
+        const res = await fetch("https://pro-backend-gray.vercel.app/api/me", {
           credentials: "include",
         });
 
@@ -29,7 +29,7 @@ const Checkout = () => {
         } else {
           setAddresses(data.user?.address || []);
         }
-        if(data.role=="professional"){
+        if (data.role == "professional") {
           toast.error("Only customer are allowed");
           navigate("/");
         }
@@ -47,7 +47,7 @@ const Checkout = () => {
     const fetchPro = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/professionals/${id}`,
+          `https://pro-backend-gray.vercel.app/api/professionals/${id}`,
         );
         const data = await res.json();
 
@@ -72,20 +72,23 @@ const Checkout = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/booking", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        "https://pro-backend-gray.vercel.app/api/booking",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            professionalId: pro?._id,
+            service: pro?.profession,
+            address: selectedAddress,
+            date: selectedDate,
+            time: selectedTime,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          professionalId: pro?._id,
-          service: pro?.profession,
-          address: selectedAddress,
-          date: selectedDate,
-          time: selectedTime,
-        }),
-      });
+      );
 
       const data = await res.json();
 

@@ -15,9 +15,12 @@ export default function ProfessionalProfile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/pro/me", {
-          credentials: "include",
-        });
+        const res = await fetch(
+          "https://pro-backend-gray.vercel.app/api/pro/me",
+          {
+            credentials: "include",
+          },
+        );
 
         const data = await res.json();
 
@@ -37,10 +40,10 @@ export default function ProfessionalProfile() {
     const fetchBookings = async () => {
       try {
         const res = await fetch(
-          "http://localhost:5000/api/booking/professional",
+          "https://pro-backend-gray.vercel.app/api/booking/professional",
           {
             credentials: "include",
-          }
+          },
         );
 
         const data = await res.json();
@@ -70,13 +73,13 @@ export default function ProfessionalProfile() {
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/booking/status/${id}`,
+        `https://pro-backend-gray.vercel.app/api/booking/status/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ status }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -84,7 +87,7 @@ export default function ProfessionalProfile() {
       if (data.success) {
         toast.success("Status updated");
         setBookings((prev) =>
-          prev.map((b) => (b._id === id ? { ...b, status } : b))
+          prev.map((b) => (b._id === id ? { ...b, status } : b)),
         );
       }
     } catch (err) {
@@ -93,7 +96,7 @@ export default function ProfessionalProfile() {
   };
 
   const logout = async () => {
-    await fetch("http://localhost:5000/api/logout", {
+    await fetch("https://pro-backend-gray.vercel.app/api/logout", {
       method: "POST",
       credentials: "include",
     });
@@ -115,13 +118,48 @@ export default function ProfessionalProfile() {
         <h2 className="text-xl font-bold mb-6">Professional Panel</h2>
 
         <ul className="space-y-3">
-          <li onClick={() => setActiveTab("dashboard")} className="cursor-pointer hover:text-blue-500">Dashboard</li>
-          <li onClick={() => setActiveTab("profile")} className="cursor-pointer hover:text-blue-500">Profile</li>
-          <li onClick={() => setActiveTab("services")} className="cursor-pointer hover:text-blue-500">Services</li>
-          <li onClick={() => setActiveTab("bookings")} className="cursor-pointer hover:text-blue-500">Bookings</li>
-          <li onClick={() => setActiveTab("availability")} className="cursor-pointer hover:text-blue-500">Availability</li>
-          <li onClick={() => setActiveTab("reviews")} className="cursor-pointer hover:text-blue-500">Reviews</li>
-          <li onClick={() => setActiveTab("settings")} className="cursor-pointer hover:text-blue-500">Settings</li>
+          <li
+            onClick={() => setActiveTab("dashboard")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Dashboard
+          </li>
+          <li
+            onClick={() => setActiveTab("profile")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Profile
+          </li>
+          <li
+            onClick={() => setActiveTab("services")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Services
+          </li>
+          <li
+            onClick={() => setActiveTab("bookings")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Bookings
+          </li>
+          <li
+            onClick={() => setActiveTab("availability")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Availability
+          </li>
+          <li
+            onClick={() => setActiveTab("reviews")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Reviews
+          </li>
+          <li
+            onClick={() => setActiveTab("settings")}
+            className="cursor-pointer hover:text-blue-500"
+          >
+            Settings
+          </li>
         </ul>
 
         <button onClick={logout} className="mt-10 text-red-500">
@@ -131,7 +169,6 @@ export default function ProfessionalProfile() {
 
       {/* MAIN */}
       <div className="flex-1 p-6">
-
         {/* DASHBOARD */}
         {activeTab === "dashboard" && (
           <div className="grid grid-cols-3 gap-4">
@@ -161,16 +198,49 @@ export default function ProfessionalProfile() {
           <div className="bg-white p-6 rounded shadow">
             <h2 className="mb-4 font-semibold">Profile</h2>
 
-            <input name="name" value={user.name} disabled={!edit} onChange={handleChange} className="w-full border p-2 mb-3 rounded" />
-            <input value={user.email} disabled className="w-full border p-2 mb-3 rounded bg-gray-100" />
-            <input name="phone" value={user.phone} disabled={!edit} onChange={handleChange} className="w-full border p-2 mb-3 rounded" />
+            <input
+              name="name"
+              value={user.name}
+              disabled={!edit}
+              onChange={handleChange}
+              className="w-full border p-2 mb-3 rounded"
+            />
+            <input
+              value={user.email}
+              disabled
+              className="w-full border p-2 mb-3 rounded bg-gray-100"
+            />
+            <input
+              name="phone"
+              value={user.phone}
+              disabled={!edit}
+              onChange={handleChange}
+              className="w-full border p-2 mb-3 rounded"
+            />
 
-            <textarea name="bio" value={user.bio || ""} disabled={!edit} onChange={handleChange} className="w-full border p-2 mb-3 rounded" placeholder="Write about yourself..." />
+            <textarea
+              name="bio"
+              value={user.bio || ""}
+              disabled={!edit}
+              onChange={handleChange}
+              className="w-full border p-2 mb-3 rounded"
+              placeholder="Write about yourself..."
+            />
 
             {!edit ? (
-              <button onClick={() => setEdit(true)} className="bg-blue-500 text-white px-4 py-2 rounded">Edit</button>
+              <button
+                onClick={() => setEdit(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Edit
+              </button>
             ) : (
-              <button onClick={handleSave} className="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+              <button
+                onClick={handleSave}
+                className="bg-green-500 text-white px-4 py-2 rounded"
+              >
+                Save
+              </button>
             )}
           </div>
         )}
@@ -182,7 +252,10 @@ export default function ProfessionalProfile() {
 
             {user.services?.length ? (
               user.services.map((s, i) => (
-                <div key={i} className="border p-3 mb-2 rounded flex justify-between">
+                <div
+                  key={i}
+                  className="border p-3 mb-2 rounded flex justify-between"
+                >
                   <p>{s}</p>
                 </div>
               ))
@@ -260,9 +333,7 @@ export default function ProfessionalProfile() {
           <div className="bg-white p-6 rounded shadow">
             <h2 className="mb-4 font-semibold">Reviews</h2>
 
-            <p className="text-gray-500">
-              Customer reviews will appear here
-            </p>
+            <p className="text-gray-500">Customer reviews will appear here</p>
           </div>
         )}
 

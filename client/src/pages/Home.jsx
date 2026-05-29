@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, MapPin, Star } from "lucide-react";
-import {useNavigate } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [professionals, setProfessionals] = useState([]);
@@ -14,7 +13,7 @@ const Home = () => {
     return [...array].sort(() => Math.random() - 0.5);
   };
   useEffect(() => {
-    fetch("http://localhost:5000/api/professionals")
+    fetch("https://pro-backend-gray.vercel.app/api/professionals")
       .then((res) => res.json())
       .then((data) => {
         setProfessionals(data.data);

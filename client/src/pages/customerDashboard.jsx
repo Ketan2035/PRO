@@ -16,9 +16,12 @@ export default function CustomerProfile() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/customer/me", {
-          credentials: "include",
-        });
+        const res = await fetch(
+          "https://pro-backend-gray.vercel.app/api/customer/me",
+          {
+            credentials: "include",
+          },
+        );
         const data = await res.json();
 
         if (data.success) {
@@ -37,9 +40,12 @@ export default function CustomerProfile() {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/booking/my", {
-          credentials: "include",
-        });
+        const res = await fetch(
+          "https://pro-backend-gray.vercel.app/api/booking/my",
+          {
+            credentials: "include",
+          },
+        );
 
         const data = await res.json();
 
@@ -69,7 +75,7 @@ export default function CustomerProfile() {
   const handleDelete = async (index) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/user/address/${index}`,
+        `https://pro-backend-gray.vercel.app/api/user/address/${index}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -94,7 +100,7 @@ export default function CustomerProfile() {
     window.location.href = "/";
   };
   const logout = async () => {
-    await fetch("http://localhost:5000/api/logout", {
+    await fetch("https://pro-backend-gray.vercel.app/api/logout", {
       method: "POST",
       credentials: "include",
     });

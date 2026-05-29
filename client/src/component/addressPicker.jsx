@@ -9,16 +9,19 @@ export default function AddressPicker() {
   });
   const sendAddress = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/address", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          address,
-          lat: coords.lat,
-          lng: coords.lng,
-        }),
-      });
+      const res = await fetch(
+        "https://pro-backend-gray.vercel.app/api/user/address",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            address,
+            lat: coords.lat,
+            lng: coords.lng,
+          }),
+        },
+      );
       const data = await res.json();
       if (data.success) {
         toast.success("Address added successfully");
