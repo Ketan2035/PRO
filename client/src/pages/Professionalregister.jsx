@@ -34,7 +34,6 @@ export default function ProRegister() {
     try {
       e.preventDefault();
       console.log("Sending:", formData);
-
       const res = await fetch(
         "https://pro-backend-gray.vercel.app/api/pro_signup",
         {
