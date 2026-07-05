@@ -6,10 +6,12 @@ import Login from "./pages/Login";
 import RoleSelection from "./component/Getpopup";
 import CustomerRegister from "./pages/Customersignup";
 import ProRegister from "./pages/Professionalregister";
+import InfoPage from "./pages/InfoPage";
 import Footer from "./component/Footer";
 import ProfessionalDetail from "./component/professionalDetail";
 import { Toaster } from "react-hot-toast";
 import SocketListener from "./component/SocketListener";
+import ScrollToTop from "./component/ScrollToTop";
 import Profile from "./pages/customerDashboard";
 import AddressPicker from "./component/addressPicker";
 import Checkout from "./component/checkout";
@@ -23,6 +25,7 @@ function AppContent() {
 
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <Toaster position="top-center" reverseOrder={false} />
       <SocketListener />
@@ -30,7 +33,7 @@ function AppContent() {
       <Routes location={state?.backgroundLocation || location}>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/role" element={<RoleSelection />} />
+
         <Route path="/customer_signup" element={<CustomerRegister />} />
         <Route path="/pro_signup" element={<ProRegister />} />
         <Route path="/profile/customer" element={<Profile />} />
@@ -42,6 +45,13 @@ function AppContent() {
         <Route path="/profile/:id" element={<ProfessionalDetail />} />
         <Route path="/checkout/:id" element={<Checkout />} />
         
+        {/* Static Pages */}
+        <Route path="/about" element={<InfoPage />} />
+        <Route path="/contact" element={<InfoPage />} />
+        <Route path="/terms" element={<InfoPage />} />
+        <Route path="/privacy" element={<InfoPage />} />
+        <Route path="/help" element={<InfoPage />} />
+
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

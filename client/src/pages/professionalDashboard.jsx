@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { LayoutDashboard, CalendarDays, User, Star, Settings, LogOut, CheckCircle2, XCircle, Clock, CreditCard, ChevronRight, TrendingUp, MapPin } from "lucide-react";
 
 export default function ProfessionalProfile() {
   const [user, setUser] = useState(null);
@@ -13,28 +14,18 @@ export default function ProfessionalProfile() {
 
   const navigate = useNavigate();
 
-  // Fetch professional data
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/pro/me", {
-          credentials: "include",
-        });
-
+        const res = await fetch("http://localhost:3000/api/pro/me", { credentials: "include" });
         const data = await res.json();
-
         if (data.success) {
           setUser(data.user);
           setIsAvailable(data.user.isAvailable ?? true);
-          
-          // Fetch reviews for professional
           fetchReviews(data.user._id);
         }
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) { console.error(err); }
     };
-
     fetchUser();
   }, []);
 
@@ -42,430 +33,325 @@ export default function ProfessionalProfile() {
     try {
       const res = await fetch(`http://localhost:3000/api/reviews/professional/${proId}`);
       const data = await res.json();
-      if (data.success) {
-        setReviews(data.reviews);
-      }
-    } catch (err) {
-      console.error("Error fetching reviews", err);
-    }
+      if (data.success) setReviews(data.reviews);
+    } catch (err) { console.error(err); }
   };
 
-  // Fetch bookings
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/booking/my", {
-          credentials: "include",
-        });
-
+        const res = await fetch("http://localhost:3000/api/booking/my", { credentials: "include" });
         const data = await res.json();
-
-        if (data.success) {
-          setBookings(data.bookings);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingBookings(false);
-      }
+        if (data.success) setBookings(data.bookings);
+      } catch (err) { console.error(err); }
+      finally { setLoadingBookings(false); }
     };
-
     fetchBookings();
   }, []);
 
-  const handleToggleAvailability = async () => {
+  const toggleAvailability = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/pro/availability", {
         method: "PUT",
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
+        body: JSON.stringify({ isAvailable: !isAvailable }),
       });
       const data = await res.json();
       if (data.success) {
-        setIsAvailable(data.isAvailable);
-        toast.success(data.message);
-      } else {
-        toast.error(data.message || "Failed to update availability");
+        setIsAvailable(!isAvailable);
+        toast.success(`You are now ${!isAvailable ? "Online" : "Offline"}`);
       }
-    } catch (err) {
-      toast.error("Error toggling availability");
-    }
-  };
-
-  const handleChange = (e) => {
-    setUser({ ...user, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = () => {
-    toast.success("Profile updated!");
-    setEdit(false);
+    } catch (err) { toast.error("Failed to update status"); }
   };
 
   const updateStatus = async (id, status, cancelReason = "") => {
     try {
-      const res = await fetch(
-        `http://localhost:3000/api/booking/${id}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ status, cancelReason }),
-        }
-      );
-
+      let finalPrice = undefined;
+      if (status === "completed") {
+        finalPrice = user.pricePerHour || 0;
+      }
+      
+      const res = await fetch(`http://localhost:3000/api/booking/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status, cancelReason, price: finalPrice }),
+      });
+      
       const data = await res.json();
-
       if (data.success) {
         toast.success(`Booking ${status}`);
-        setBookings((prev) =>
-          prev.map((b) => (b._id === id ? { ...b, status, cancelReason } : b))
-        );
+        setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, status, price: finalPrice || b.price } : b)));
       } else {
-        toast.error(data.message || "Error updating status");
+        toast.error(data.message || "Failed to update status");
       }
-    } catch (err) {
-      toast.error("Error updating status");
-    }
+    } catch (err) { toast.error("Error updating status"); }
   };
 
   const logout = async () => {
-    await fetch("http://localhost:3000/api/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-
+    await fetch("http://localhost:3000/api/logout", { method: "POST", credentials: "include" });
     localStorage.removeItem("user");
-    toast.success("Logged out");
-    setTimeout(() => {
-      navigate("/");
-      window.location.reload();
-    }, 1000);
+    window.location.href = "/";
   };
 
-  if (!user) return <p className="text-center mt-10">Loading...</p>;
+  if (!user) return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2874f0]"></div>
+    </div>
+  );
 
-  // Analytics
-  const completedBookings = bookings.filter((b) => b.status === "completed");
-  const paidBookings = bookings.filter((b) => b.status === "completed" && b.paymentStatus === "paid");
-  const totalEarnings = paidBookings.reduce((sum, b) => sum + (b.price || 100), 0);
+  // Analytics Calculations
+  const completedJobs = bookings.filter((b) => b.status === "completed").length;
+  const pendingJobs = bookings.filter((b) => b.status === "pending").length;
+  const totalEarnings = bookings.filter((b) => b.status === "completed" && b.paymentStatus === "paid").reduce((sum, b) => sum + (b.price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* SIDEBAR */}
-      <div className="w-64 bg-white shadow p-4 flex flex-col justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-6 pb-4 border-b">
-            <img
-              src={user.profileImage?.url || `https://ui-avatars.com/api/?name=${user.name}&background=random`}
-              alt="profile"
-              className="w-12 h-12 rounded-full object-cover border"
-            />
-            <div>
-              <h2 className="font-bold text-gray-900 leading-tight">{user.name}</h2>
-              <p className="text-xs text-gray-500">{user.profession}</p>
-            </div>
-          </div>
-
-          <ul className="space-y-3 text-sm font-medium">
-            <li
-              onClick={() => setActiveTab("dashboard")}
-              className={`cursor-pointer p-2 rounded-lg transition ${activeTab === "dashboard" ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              📊 Dashboard
-            </li>
-            <li
-              onClick={() => setActiveTab("bookings")}
-              className={`cursor-pointer p-2 rounded-lg transition ${activeTab === "bookings" ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              📅 Bookings ({bookings.length})
-            </li>
-            <li
-              onClick={() => setActiveTab("reviews")}
-              className={`cursor-pointer p-2 rounded-lg transition ${activeTab === "reviews" ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              ⭐ Reviews ({reviews.length})
-            </li>
-            <li
-              onClick={() => setActiveTab("profile")}
-              className={`cursor-pointer p-2 rounded-lg transition ${activeTab === "profile" ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              👤 Profile
-            </li>
-            <li
-              onClick={() => setActiveTab("settings")}
-              className={`cursor-pointer p-2 rounded-lg transition ${activeTab === "settings" ? "bg-black text-white" : "hover:bg-gray-100 text-gray-700"}`}
-            >
-              ⚙️ Settings
-            </li>
-          </ul>
+    <div className="bg-gray-50 min-h-screen font-sans pb-16">
+      {/* Professional Dashboard Header */}
+      <div className="bg-[#172337] text-white py-3 px-6 shadow-md flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-xl font-bold tracking-tight italic">
+            Urban<span className="text-yellow-400">Saathi</span> <span className="text-gray-300 font-normal text-sm ml-2">Professional Hub</span>
+          </Link>
         </div>
-
-        {/* AVAILABILITY TOGGLE & LOGOUT */}
-        <div className="space-y-4 border-t pt-4">
-          <div className="flex items-center justify-between bg-gray-50 p-3 rounded-xl border">
-            <div>
-              <p className="text-xs font-semibold text-gray-700">Status</p>
-              <p className={`text-xs font-bold ${isAvailable ? "text-green-600" : "text-gray-400"}`}>
-                {isAvailable ? "🟢 Online" : "⚪ Offline"}
-              </p>
-            </div>
-            <button
-              onClick={handleToggleAvailability}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                isAvailable ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-              }`}
-            >
-              Toggle
-            </button>
-          </div>
-
-          <button onClick={logout} className="w-full text-left text-sm text-red-500 font-medium p-2 hover:bg-red-50 rounded-lg transition">
-            🚪 Logout
-          </button>
+        <div className="flex items-center gap-4 text-sm font-medium">
+           <div className="flex items-center gap-2">
+             <div className={`w-3 h-3 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+             <span>{isAvailable ? "Accepting Jobs" : "Offline"}</span>
+           </div>
         </div>
       </div>
 
-      {/* MAIN */}
-      <div className="flex-1 p-8">
-        {/* DASHBOARD */}
-        {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${isAvailable ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"}`}>
-                {isAvailable ? "Available for New Bookings" : "Currently Offline"}
-              </span>
+      <div className="max-w-7xl mx-auto px-4 mt-6 flex flex-col md:flex-row gap-6">
+        
+        {/* SIDEBAR */}
+        <div className="w-full md:w-64 flex-shrink-0">
+          <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden">
+            
+            {/* Profile Brief */}
+            <div className="p-6 border-b border-gray-100 flex flex-col items-center text-center">
+               <img src={user.profileImage?.url || `https://ui-avatars.com/api/?name=${user.name}&background=random`} alt="user" className="w-20 h-20 rounded-full object-cover border-4 border-gray-50 mb-3" />
+               <h2 className="font-bold text-gray-900">{user.name}</h2>
+               <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">{user.profession}</p>
             </div>
 
-            {/* ANALYTICS CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Earnings</p>
-                <h2 className="text-2xl font-black text-gray-900 mt-1">₹{totalEarnings}</h2>
-                <p className="text-xs text-gray-400 mt-1">{paidBookings.length} paid orders</p>
+            <div className="flex flex-col">
+              {[
+                { id: "dashboard", label: "Performance", icon: <TrendingUp size={18} /> },
+                { id: "bookings", label: "Manage Bookings", icon: <CalendarDays size={18} /> },
+                { id: "profile", label: "Profile Settings", icon: <Settings size={18} /> },
+                { id: "reviews", label: "Customer Feedback", icon: <Star size={18} /> },
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full text-left px-6 py-3.5 flex items-center gap-3 transition font-medium text-sm
+                    ${activeTab === tab.id 
+                      ? "bg-blue-50 text-[#2874f0] border-l-4 border-l-[#2874f0]" 
+                      : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent hover:text-[#2874f0]"
+                    }`}
+                >
+                  {tab.icon} {tab.label}
+                </button>
+              ))}
+              <div className="p-4 border-t border-gray-100 mt-2">
+                 <button 
+                   onClick={toggleAvailability} 
+                   className={`w-full py-2 rounded-sm text-sm font-semibold transition border 
+                     ${isAvailable ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" : "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"}`}
+                 >
+                   Go {isAvailable ? "Offline" : "Online"}
+                 </button>
               </div>
-
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Completed Jobs</p>
-                <h2 className="text-2xl font-black text-green-600 mt-1">{completedBookings.length}</h2>
-                <p className="text-xs text-gray-400 mt-1">out of {bookings.length} total</p>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pending Requests</p>
-                <h2 className="text-2xl font-black text-yellow-600 mt-1">
-                  {bookings.filter((b) => b.status === "pending").length}
-                </h2>
-                <p className="text-xs text-gray-400 mt-1">needs response</p>
-              </div>
-
-              <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Rating Score</p>
-                <h2 className="text-2xl font-black text-yellow-500 mt-1">★ {user.rating || "0.0"}</h2>
-                <p className="text-xs text-gray-400 mt-1">{user.totalReviews || 0} customer reviews</p>
-              </div>
+              <button onClick={logout} className="w-full text-left px-6 py-4 flex items-center gap-3 text-red-500 hover:bg-gray-50 transition font-medium text-sm border-t border-gray-100">
+                <LogOut size={18} /> Sign Out
+              </button>
             </div>
+          </div>
+        </div>
 
-            {/* RECENT BOOKINGS SUMMARY */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Job Requests</h2>
-              {bookings.length === 0 ? (
-                <p className="text-gray-500 text-sm">No job requests received yet.</p>
-              ) : (
-                <div className="space-y-3">
-                  {bookings.slice(0, 5).map((b) => (
-                    <div key={b._id} className="flex justify-between items-center p-3.5 bg-gray-50 rounded-xl">
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm">{b.customer?.name || "Customer"} ({b.service})</p>
-                        <p className="text-xs text-gray-500">{new Date(b.date).toLocaleDateString()} at {b.time}</p>
-                      </div>
-                      <span className={`text-xs px-3 py-1 rounded-full font-bold uppercase ${
-                        b.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                        b.status === "completed" ? "bg-green-100 text-green-700" :
-                        b.status === "cancelled" ? "bg-red-100 text-red-700" :
-                        "bg-blue-100 text-blue-700"
-                      }`}>
-                        {b.status.replace("_", " ")}
-                      </span>
-                    </div>
-                  ))}
+        {/* MAIN CONTENT */}
+        <div className="flex-1">
+          
+          {/* DASHBOARD (Analytics) */}
+          {activeTab === "dashboard" && (
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-gray-900">Performance Metrics</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-blue-500">
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Total Revenue</p>
+                   <h3 className="text-3xl font-bold text-gray-900">₹{totalEarnings.toLocaleString()}</h3>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* BOOKINGS */}
-        {activeTab === "bookings" && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-6">Manage Bookings</h2>
-
-            {loadingBookings ? (
-              <p>Loading bookings...</p>
-            ) : bookings.length === 0 ? (
-              <p className="text-gray-500">No bookings found.</p>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((b) => (
-                  <div key={b._id} className="border p-5 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white hover:border-gray-300 transition">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <p className="font-bold text-lg text-gray-900">{b.customer?.name || "Customer"}</p>
-                        <span className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${
-                          b.status === "pending" ? "bg-yellow-100 text-yellow-700" :
-                          b.status === "completed" ? "bg-green-100 text-green-700" :
-                          b.status === "cancelled" ? "bg-red-100 text-red-700" :
-                          "bg-blue-100 text-blue-700"
-                        }`}>
-                          {b.status.replace("_", " ")}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold text-gray-800">{b.service}</p>
-                      <p className="text-xs text-gray-500 mt-1">{new Date(b.date).toLocaleDateString()} at {b.time}</p>
-                      <p className="text-xs text-gray-400">{b.address}</p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {b.status === "pending" && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(b._id, "accepted")}
-                            className="bg-black text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-800 transition"
-                          >
-                            Accept Request
-                          </button>
-                          <button
-                            onClick={() => updateStatus(b._id, "cancelled", "Rejected by professional")}
-                            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl text-xs font-semibold hover:bg-gray-200 transition"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-
-                      {b.status === "accepted" && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(b._id, "on_the_way")}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-blue-700 transition"
-                          >
-                            🚗 On the way
-                          </button>
-                          <button
-                            onClick={() => updateStatus(b._id, "cancelled", "Cancelled by professional")}
-                            className="text-red-500 text-xs font-semibold hover:underline px-2"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      )}
-
-                      {b.status === "on_the_way" && (
-                        <button
-                          onClick={() => updateStatus(b._id, "in_progress")}
-                          className="bg-purple-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-purple-700 transition"
-                        >
-                          🛠️ Start Work
-                        </button>
-                      )}
-
-                      {b.status === "in_progress" && (
-                        <button
-                          onClick={() => updateStatus(b._id, "completed")}
-                          className="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-semibold hover:bg-green-700 transition"
-                        >
-                          ✓ Mark Completed
-                        </button>
-                      )}
-
-                      {b.status === "completed" && (
-                        <span className={`text-xs px-3 py-1 rounded-full font-semibold ${b.paymentStatus === "paid" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                          {b.paymentStatus === "paid" ? "✓ Paid" : "Payment Pending"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-green-500">
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Completed Jobs</p>
+                   <h3 className="text-3xl font-bold text-gray-900">{completedJobs}</h3>
+                </div>
+                <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-yellow-500">
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Pending Requests</p>
+                   <h3 className="text-3xl font-bold text-gray-900">{pendingJobs}</h3>
+                </div>
+                <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-orange-500">
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Avg Rating</p>
+                   <div className="flex items-center gap-2">
+                     <h3 className="text-3xl font-bold text-gray-900">{user.rating || "0.0"}</h3>
+                     <Star size={24} className="text-yellow-500 fill-yellow-500 mt-1" />
+                   </div>
+                </div>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* REVIEWS */}
-        {activeTab === "reviews" && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-6">Customer Reviews</h2>
+          {/* BOOKINGS (Booking Management) */}
+          {activeTab === "bookings" && (
+            <div className="bg-white rounded-sm shadow-sm border border-gray-200">
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h2 className="text-lg font-bold text-gray-900">Manage Service Bookings</h2>
+              </div>
+              
+              <div className="p-6">
+                {loadingBookings ? (
+                  <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2874f0]"></div></div>
+                ) : bookings.length === 0 ? (
+                  <div className="text-center py-16">
+                    <CalendarDays size={48} className="mx-auto text-gray-300 mb-4" />
+                    <p className="text-gray-500 font-medium">No booking requests found.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {bookings.map((booking) => (
+                      <div key={booking._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                        
+                        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex flex-wrap justify-between items-center text-sm">
+                          <div className="flex gap-8">
+                            <div>
+                              <p className="text-gray-500 uppercase text-xs font-semibold mb-1">Customer</p>
+                              <p className="text-gray-900 font-medium">{booking.customer?.name}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500 uppercase text-xs font-semibold mb-1">Scheduled Date</p>
+                              <p className="text-gray-900 font-medium">{new Date(booking.date).toLocaleDateString()} at {booking.time}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-gray-500 uppercase text-xs font-semibold mb-1">Booking #</p>
+                            <p className="text-gray-900 font-mono text-xs">{(booking._id || "").toUpperCase()}</p>
+                          </div>
+                        </div>
 
-            {reviews.length === 0 ? (
-              <p className="text-gray-500 text-sm">No reviews received yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map((rev) => (
-                  <div key={rev._id} className="border p-4 rounded-xl">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={rev.customer?.profileImage?.url || `https://ui-avatars.com/api/?name=${rev.customer?.name || "User"}&background=random`}
-                          alt="user"
-                          className="w-9 h-9 rounded-full object-cover"
-                        />
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900">{rev.customer?.name || "Customer"}</h4>
-                          <p className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</p>
+                        <div className="p-4 flex flex-col md:flex-row justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                               <MapPin size={16} className="text-gray-400" />
+                               <span className="text-sm font-medium text-gray-800">{booking.address}</span>
+                            </div>
+                            <div className="flex items-center gap-2 mb-4">
+                               <span className="text-sm font-medium text-gray-800 bg-blue-50 px-2 py-1 rounded text-[#2874f0]">{booking.service}</span>
+                               <span className="text-sm text-gray-500">Contact: {booking.customer?.mob_no || "N/A"}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              Status: 
+                              <span className={`text-xs font-bold uppercase px-2 py-1 rounded-sm
+                                ${booking.status === "completed" ? "bg-green-100 text-green-700" : 
+                                  booking.status === "cancelled" ? "bg-red-100 text-red-700" : 
+                                  booking.status === "pending" ? "bg-yellow-100 text-yellow-700" :
+                                  "bg-blue-100 text-blue-700"}`
+                              }>
+                                {(booking.status || "").replace("_", " ")}
+                              </span>
+                            </div>
+                            {booking.status === "completed" && (
+                              <p className="text-sm text-gray-600 mt-2 font-medium">
+                                Final Price: <span className="text-green-700 font-bold">₹{booking.price}</span> | Payment: <span className="uppercase">{booking.paymentStatus}</span>
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col gap-2 min-w-[180px] border-l border-gray-100 pl-4">
+                            {booking.status === "pending" && (
+                              <>
+                                <button onClick={() => updateStatus(booking._id, "accepted")} className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Accept Booking</button>
+                                <button onClick={() => updateStatus(booking._id, "cancelled", "Busy schedule")} className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm text-sm font-medium py-2 rounded-sm transition">Reject</button>
+                              </>
+                            )}
+                            {booking.status === "accepted" && (
+                              <button onClick={() => updateStatus(booking._id, "on_the_way")} className="bg-[#2874f0] hover:bg-blue-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Mark On The Way</button>
+                            )}
+                            {booking.status === "on_the_way" && (
+                              <button onClick={() => updateStatus(booking._id, "in_progress")} className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Start Job</button>
+                            )}
+                            {booking.status === "in_progress" && (
+                              <button onClick={() => updateStatus(booking._id, "completed")} className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Complete Job</button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <span className="text-yellow-500 font-bold text-sm bg-yellow-50 px-2.5 py-1 rounded-lg">
-                        ★ {rev.rating}.0
-                      </span>
-                    </div>
-                    {rev.comment && <p className="text-sm text-gray-600 mt-2">{rev.comment}</p>}
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* PROFILE */}
-        {activeTab === "profile" && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-2xl">
-            <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+          {/* PROFILE SETTINGS */}
+          {activeTab === "profile" && (
+            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+               <h2 className="text-xl font-bold text-gray-900 mb-6 border-b pb-4">Profile Settings</h2>
+               <div className="max-w-2xl grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" value={user.name} disabled className="w-full border border-gray-300 rounded-sm p-2.5 bg-gray-50 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Registered Email</label>
+                    <input type="email" value={user.email} disabled className="w-full border border-gray-300 rounded-sm p-2.5 bg-gray-50 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Profession / Category</label>
+                    <input type="text" value={user.profession} disabled className="w-full border border-gray-300 rounded-sm p-2.5 bg-gray-50 text-sm" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Base Price per Hour (₹)</label>
+                    <input type="text" value={user.pricePerHour} disabled className="w-full border border-gray-300 rounded-sm p-2.5 bg-gray-50 text-sm" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Service Area (City)</label>
+                    <input type="text" value={user.service_area} disabled className="w-full border border-gray-300 rounded-sm p-2.5 bg-gray-50 text-sm" />
+                  </div>
+                  <div className="md:col-span-2 mt-4">
+                    <button className="bg-[#2874f0] text-white px-6 py-2.5 text-sm font-medium rounded-sm shadow-sm opacity-50 cursor-not-allowed">Edit Profile (Coming Soon)</button>
+                  </div>
+               </div>
+            </div>
+          )}
 
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Full Name</label>
-            <input name="name" value={user.name || ""} disabled={!edit} onChange={handleChange} className="w-full border p-2.5 mb-3 rounded-xl text-sm" />
+          {/* REVIEWS */}
+          {activeTab === "reviews" && (
+            <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+               <h2 className="text-xl font-bold text-gray-900 mb-6 border-b pb-4">Customer Feedback</h2>
+               {reviews.length === 0 ? (
+                 <p className="text-gray-500 italic">No reviews received yet.</p>
+               ) : (
+                 <div className="space-y-6">
+                   {reviews.map((rev) => (
+                      <div key={rev._id} className="pb-4 border-b border-gray-100 last:border-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-gray-900">{rev.customer?.name || "Customer"}</span>
+                          <div className="flex items-center gap-1 text-xs font-bold bg-green-100 text-green-700 px-1.5 py-0.5 rounded-sm">
+                             {rev.rating} ★
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mb-2">{new Date(rev.createdAt).toLocaleDateString()}</p>
+                        {rev.comment && <p className="text-sm text-gray-700">{rev.comment}</p>}
+                      </div>
+                   ))}
+                 </div>
+               )}
+            </div>
+          )}
 
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Email</label>
-            <input value={user.email || ""} disabled className="w-full border p-2.5 mb-3 rounded-xl text-sm bg-gray-100" />
-
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Mobile</label>
-            <input name="mob" value={user.mob || ""} disabled={!edit} onChange={handleChange} className="w-full border p-2.5 mb-3 rounded-xl text-sm" />
-
-            <label className="block text-xs font-semibold text-gray-400 mb-1">Bio</label>
-            <textarea name="bio" value={user.bio || ""} disabled={!edit} onChange={handleChange} rows={3} className="w-full border p-2.5 mb-4 rounded-xl text-sm" />
-
-            {!edit ? (
-              <button onClick={() => setEdit(true)} className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-800">
-                Edit Profile
-              </button>
-            ) : (
-              <button onClick={handleSave} className="bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700">
-                Save Changes
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* SETTINGS */}
-        {activeTab === "settings" && (
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-md">
-            <h2 className="text-xl font-bold mb-4">Settings</h2>
-            <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2.5 rounded-xl mb-3 w-full text-sm font-medium text-left">
-              🔒 Change Password
-            </button>
-            <button className="bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-4 py-2.5 rounded-xl w-full text-sm font-medium text-left">
-              ⚠️ Delete Account
-            </button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -2,47 +2,46 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-export default function ProRegister() {
-  const navigate = useNavigate();
+const ProRegister = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    mob: "",
+    mob_no: "",
     profession: "",
     experience: "",
-    qualification: "",
-    service_area: "",
     bio: "",
+    pricePerHour: "",
+    service_area: "",
+    qualification: "",
   });
-
+  const [profileImage, setProfileImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleFileChange = (e) => setProfileImage(e.target.files[0]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
+      const data = new FormData();
+      Object.keys(formData).forEach((key) => data.append(key, formData[key]));
+      if (profileImage) data.append("profileImage", profileImage);
+
       const res = await fetch("http://localhost:3000/api/pro_signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(formData),
+        body: data, // No Content-Type header for FormData!
       });
-      const data = await res.json();
+
+      const resData = await res.json();
       if (res.ok) {
-        toast.success("Registered successfully!");
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setTimeout(() => {
-          navigate("/");
-          window.location.reload();
-        }, 1500);
+        toast.success("Professional account created successfully!");
+        navigate("/login");
       } else {
-        const errorMsg = data.errors?.[0]?.message || data.message || "Registration failed";
-        toast.error(errorMsg);
+        toast.error(resData.message || "Failed to register");
       }
     } catch (err) {
       toast.error("Server error");
@@ -52,193 +51,98 @@ export default function ProRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-      <div className="w-full max-w-2xl">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Partner with us</h2>
-        <p className="text-gray-600 mb-8">Join the platform and grow your business today.</p>
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-8 font-sans px-4 pb-16">
+      
+      {/* Header */}
+      <Link to="/" className="mb-4 flex flex-col items-center">
+        <span className="text-3xl font-bold tracking-tight text-[#2874f0] italic">
+          Urban<span className="text-yellow-500">Saathi</span>
+        </span>
+        <span className="text-sm font-semibold text-gray-700 tracking-widest uppercase mt-1">Professional Hub</span>
+      </Link>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Full Name */}
-          <div className="relative md:col-span-1">
-            <input
-              type="text"
-              name="name"
-              id="name"
-              placeholder=" "
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="name" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Full Name
-            </label>
+      <div className="w-full max-w-[600px] bg-white border border-gray-300 rounded-[4px] p-6 shadow-sm">
+        <h1 className="text-[28px] font-normal mb-1 text-[#111]">Register as a Professional</h1>
+        <p className="text-[13px] text-gray-600 mb-6 border-b pb-4">Join thousands of professionals earning on Urban Saathi.</p>
+        
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Full Name</label>
+              <input type="text" name="name" value={formData.name} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Mobile Number</label>
+              <input type="tel" name="mob_no" value={formData.mob_no} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
           </div>
 
-          {/* Email */}
-          <div className="relative md:col-span-1">
-            <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder=" "
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="email" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Email Address
-            </label>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Email Address</label>
+              <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Password</label>
+              <input type="password" name="password" placeholder="At least 6 characters" value={formData.password} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
           </div>
 
-          {/* Password */}
-          <div className="relative md:col-span-1">
-            <input
-              type="password"
-              name="password"
-              id="password"
-              placeholder=" "
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="password" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Password
-            </label>
+          <div className="border-t border-gray-200 mt-2 pt-4">
+             <h3 className="font-bold text-[15px] mb-3 text-[#111]">Professional Details</h3>
           </div>
 
-          {/* Mobile */}
-          <div className="relative md:col-span-1">
-            <input
-              type="tel"
-              name="mob"
-              id="mob"
-              placeholder=" "
-              value={formData.mob}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="mob" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Mobile Number
-            </label>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Profession (e.g. Plumber)</label>
+              <input type="text" name="profession" value={formData.profession} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Experience (Years)</label>
+              <input type="number" name="experience" value={formData.experience} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
           </div>
 
-          {/* Profession */}
-          <div className="relative md:col-span-1">
-            <select
-              name="profession"
-              id="profession"
-              value={formData.profession}
-              onChange={handleChange}
-              required
-              className="block px-4 py-4 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 focus:border-black"
-            >
-              <option value="" disabled>Select Profession</option>
-              <option value="Plumber">Plumber</option>
-              <option value="Electrician">Electrician</option>
-              <option value="Carpenter">Carpenter</option>
-              <option value="Painter">Painter</option>
-              <option value="Mechanic">Mechanic</option>
-              <option value="Cleaner">Cleaner</option>
-              <option value="AC Technician">AC Technician</option>
-              <option value="RO Technician">RO Technician</option>
-              <option value="Tutor">Tutor</option>
-              <option value="Driver">Driver</option>
-              <option value="Home Maid">Home Maid</option>
-              <option value="Other">Other</option>
-            </select>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Base Price / Hour (₹)</label>
+              <input type="number" name="pricePerHour" value={formData.pricePerHour} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold text-[#111] mb-1">Service Area / City</label>
+              <input type="text" name="service_area" value={formData.service_area} onChange={handleChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required />
+            </div>
           </div>
 
-          {/* Experience */}
-          <div className="relative md:col-span-1">
-            <input
-              type="number"
-              name="experience"
-              id="experience"
-              placeholder=" "
-              value={formData.experience}
-              onChange={handleChange}
-              required
-              min="0"
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="experience" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Experience (Years)
-            </label>
+          <div>
+            <label className="block text-[13px] font-bold text-[#111] mb-1">Short Bio / About You</label>
+            <textarea name="bio" value={formData.bio} onChange={handleChange} rows="3" className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] focus:outline-none focus:border-[#e77600] focus:shadow-[0_0_3px_2px_rgba(228,121,17,0.5)] transition text-sm" required></textarea>
+          </div>
+          
+          <div>
+            <label className="block text-[13px] font-bold text-[#111] mb-1">Profile Photo (Optional)</label>
+            <input type="file" accept="image/*" onChange={handleFileChange} className="w-full px-3 py-1.5 border border-[#a6a6a6] rounded-[3px] bg-gray-50 text-sm" />
           </div>
 
-          {/* Qualification */}
-          <div className="relative md:col-span-1">
-            <input
-              type="text"
-              name="qualification"
-              id="qualification"
-              placeholder=" "
-              value={formData.qualification}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="qualification" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Qualification (e.g. ITI, B.Tech)
-            </label>
-          </div>
-
-          {/* Service Area */}
-          <div className="relative md:col-span-1">
-            <input
-              type="text"
-              name="service_area"
-              id="service_area"
-              placeholder=" "
-              value={formData.service_area}
-              onChange={handleChange}
-              required
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
-            />
-            <label htmlFor="service_area" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Service Area City / Pincode
-            </label>
-          </div>
-
-          {/* Bio */}
-          <div className="relative md:col-span-2">
-            <textarea
-              name="bio"
-              id="bio"
-              placeholder=" "
-              value={formData.bio}
-              onChange={handleChange}
-              required
-              rows="3"
-              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer resize-none"
-            ></textarea>
-            <label htmlFor="bio" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
-              Short Bio
-            </label>
-          </div>
-
-          <div className="md:col-span-2 mt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-black text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {loading ? "Registering..." : "Register Now"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#f0c14b] border border-[#a88734_#9c7e31_#846a29] text-[#111] py-2 rounded-[3px] hover:bg-[#f4d078] active:bg-[#f0c14b] shadow-[0_1px_0_rgba(255,255,255,0.4)_inset] font-normal text-sm transition mt-4"
+          >
+            {loading ? "Registering..." : "Create your Professional account"}
+          </button>
         </form>
-
-        <p className="text-center text-sm text-gray-600 mt-8">
-          Already have an account?{" "}
-          <Link to="/login" className="text-black font-semibold hover:underline">
-            Log in
-          </Link>
-        </p>
+        
+        <div className="mt-6 pt-4 border-t border-gray-100">
+           <p className="text-[13px] text-[#111] text-center">
+             Already have an account? <Link to="/login" className="text-[#0066c0] hover:text-[#c45500] hover:underline">Sign in</Link>
+           </p>
+        </div>
       </div>
+      
     </div>
   );
-}
+};
+
+export default ProRegister;
