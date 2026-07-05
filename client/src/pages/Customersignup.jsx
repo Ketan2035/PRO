@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function CustomerRegister() {
@@ -8,225 +7,171 @@ export default function CustomerRegister() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     mobile: "",
     city: "",
     address: "",
-    otp: "",
   });
 
-  const [generatedOtp, setGeneratedOtp] = useState(null);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Simulate sending OTP
-  const sendOtp = () => {
-    if (!formData.mobile) {
-      alert("Please enter mobile number first.");
-      return;
-    }
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(otp);
-    setOtpSent(true);
-    alert(`OTP Sent: ${otp} (demo only)`);
-  };
-
-  // Verify OTP
-  const verifyOtp = () => {
-    if (formData.otp === generatedOtp) {
-      setOtpVerified(true);
-      alert(" OTP Verified Successfully");
-    } else {
-      alert(" Invalid OTP");
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await fetch(
-        "https://pro-backend-gray.vercel.app/api/customer_signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        },
-      );
+      const res = await fetch("http://localhost:3000/api/customer_signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("User registered successful");
+        toast.success("Registration successful");
         localStorage.setItem("user", JSON.stringify(data.user));
         setTimeout(() => {
           navigate("/");
           window.location.reload();
         }, 1000);
       } else {
-        alert(data.message || "Error");
+        const errorMsg = data.errors?.[0]?.message || data.message || "Registration failed";
+        toast.error(errorMsg);
       }
     } catch (err) {
-      console.log(err);
-      alert("Server error");
+      toast.error("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white m-5 shadow-2xl rounded-2xl p-8 w-full max-w-5xl">
-        {/* Header */}
-        <h2 className="text-3xl font-bold text-center text-gray-900">
-          Create Account As a Customer
-        </h2>
-        <p className="text-center text-gray-500 mt-2">
-          Join and start hiring professionals for your work
-        </p>
+    <div className="min-h-screen bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+      <div className="w-full max-w-lg">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Customer Account</h2>
+        <p className="text-gray-600 mb-8">Join and start hiring professionals near you.</p>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Full Name */}
-          <div>
-            <label className="block text-gray-700 font-medium">Full Name</label>
+          <div className="relative">
             <input
               type="text"
               name="name"
+              id="name"
+              placeholder=" "
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-              placeholder="Enter your full name"
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="name" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Full Name
+            </label>
           </div>
 
           {/* Email */}
-          <div>
-            <label className="block text-gray-700 font-medium">Email</label>
+          <div className="relative">
             <input
               type="email"
               name="email"
+              id="email"
+              placeholder=" "
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-              placeholder="Enter your email"
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="email" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Email Address
+            </label>
           </div>
 
-          {/* Mobile with OTP */}
-          <div>
-            <label className=" block text-gray-700 font-medium">
+          {/* Password */}
+          <div className="relative">
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder=" "
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
+            />
+            <label htmlFor="password" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Password
+            </label>
+          </div>
+
+          {/* Mobile */}
+          <div className="relative">
+            <input
+              type="tel"
+              name="mobile"
+              id="mobile"
+              placeholder=" "
+              value={formData.mobile}
+              onChange={handleChange}
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
+            />
+            <label htmlFor="mobile" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
               Mobile Number
             </label>
-            <div className="flex h-14 gap-2">
-              <input
-                type="tel"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full  px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-                placeholder="Enter your mobile number"
-              />
-              <button
-                type="button"
-                onClick={sendOtp}
-                className="mt-1 text-center px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 shadow-md"
-              >
-                Send OTP
-              </button>
-            </div>
           </div>
 
-          {/* OTP */}
-          {otpSent && (
-            <div>
-              <label className="block text-gray-700 font-medium">
-                Enter OTP
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="otp"
-                  value={formData.otp}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-                  placeholder="Enter 6-digit OTP"
-                />
-                <button
-                  type="button"
-                  onClick={verifyOtp}
-                  className="mt-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 shadow-md"
-                >
-                  Verify
-                </button>
-              </div>
-              {otpVerified && (
-                <p className="text-green-600 text-sm mt-1">✅ OTP Verified</p>
-              )}
-            </div>
-          )}
-
           {/* City */}
-          <div>
-            <label className="block text-gray-700 font-medium">City</label>
+          <div className="relative">
             <input
               type="text"
               name="city"
+              id="city"
+              placeholder=" "
               value={formData.city}
               onChange={handleChange}
               required
-              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-              placeholder="Enter your city"
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="city" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              City
+            </label>
           </div>
 
           {/* Address */}
-          <div className="md:col-span-2">
-            <label className="block text-gray-700 font-medium">Address</label>
+          <div className="relative">
             <textarea
               name="address"
+              id="address"
+              placeholder=" "
               value={formData.address}
               onChange={handleChange}
-              rows="3"
               required
-              className="mt-1 w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
-              placeholder="Enter full address"
+              rows="3"
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer resize-none"
             ></textarea>
+            <label htmlFor="address" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Full Address
+            </label>
           </div>
-          {/* Submit */}
-          <div className="md:col-span-2">
-            <button
-              type="submit"
-              disabled={!otpVerified}
-              className={`w-full py-3 rounded-xl font-semibold transition shadow-lg ${
-                otpVerified
-                  ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
-            >
-              Register
-            </button>
-          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition disabled:opacity-50 mt-4"
+          >
+            {loading ? "Registering..." : "Register"}
+          </button>
         </form>
 
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-gray-600 mt-8">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-green-600 font-medium hover:underline"
-          >
-            Log In
+          <Link to="/login" className="text-black font-semibold hover:underline">
+            Log in
           </Link>
         </p>
       </div>

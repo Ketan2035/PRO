@@ -1,15 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function ProRegister() {
   const navigate = useNavigate();
-  const [message, setMessage] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     mob: "",
     profession: "",
     experience: "",
@@ -18,33 +16,22 @@ export default function ProRegister() {
     bio: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSendOtp = () => {
-    setOtpSent(true);
-  };
-
-  const handleVerifyOtp = () => {
-    alert("OTP Verified!");
-  };
-
   const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
     try {
-      e.preventDefault();
-      console.log("Sending:", formData);
-      const res = await fetch(
-        "https://pro-backend-gray.vercel.app/api/pro_signup",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        },
-      );
+      const res = await fetch("http://localhost:3000/api/pro_signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
       const data = await res.json();
       if (res.ok) {
         toast.success("Registered successfully!");
@@ -54,179 +41,203 @@ export default function ProRegister() {
           window.location.reload();
         }, 1500);
       } else {
-        toast.error("server error");
+        const errorMsg = data.errors?.[0]?.message || data.message || "Registration failed";
+        toast.error(errorMsg);
       }
-      console.log(data);
     } catch (err) {
-      console.log(err);
-      toast.error("server error");
+      toast.error("Server error");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white m-6 rounded-2xl shadow-xl w-full max-w-5xl p-10">
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Register as a Professional
-        </h2>
-        <p className="text-center text-gray-600 mt-2">
-          Create your profile and start getting clients today.
-        </p>
+    <div className="min-h-screen bg-white pt-24 pb-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+      <div className="w-full max-w-2xl">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Partner with us</h2>
+        <p className="text-gray-600 mb-8">Join the platform and grow your business today.</p>
 
-        <form
-          className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6"
-          onSubmit={handleSubmit}
-        >
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Full Name */}
-          <div>
-            <label className="block text-gray-700">Full Name</label>
+          <div className="relative md:col-span-1">
             <input
               type="text"
               name="name"
+              id="name"
+              placeholder=" "
               value={formData.name}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="Enter your full name"
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="name" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Full Name
+            </label>
           </div>
 
           {/* Email */}
-          <div>
-            <label className="block text-gray-700">Email Address</label>
+          <div className="relative md:col-span-1">
             <input
               type="email"
               name="email"
+              id="email"
+              placeholder=" "
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="example@email.com"
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="email" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Email Address
+            </label>
           </div>
 
-          {/* Mobile Number + OTP */}
-          <div className="">
-            <label className="block text-gray-700">Mobile Number</label>
-            <div className="flex gap-3 mt-1">
-              <input
-                type="tel"
-                name="mob"
-                value={formData.mob}
-                onChange={handleChange}
-                className="w-full  border rounded-lg focus:ring-2 focus:ring-green-500"
-                placeholder="+91 9876543210"
-              />
-              {!otpSent ? (
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Send OTP
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Verify OTP
-                </button>
-              )}
-            </div>
-            {otpSent && (
-              <input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                className="w-full mt-3 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter OTP"
-              />
-            )}
+          {/* Password */}
+          <div className="relative md:col-span-1">
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder=" "
+              value={formData.password}
+              onChange={handleChange}
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
+            />
+            <label htmlFor="password" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Password
+            </label>
+          </div>
+
+          {/* Mobile */}
+          <div className="relative md:col-span-1">
+            <input
+              type="tel"
+              name="mob"
+              id="mob"
+              placeholder=" "
+              value={formData.mob}
+              onChange={handleChange}
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
+            />
+            <label htmlFor="mob" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Mobile Number
+            </label>
           </div>
 
           {/* Profession */}
-          <div>
-            <label className="block text-gray-700">Profession</label>
+          <div className="relative md:col-span-1">
             <select
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
               name="profession"
+              id="profession"
               value={formData.profession}
               onChange={handleChange}
+              required
+              className="block px-4 py-4 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-0 focus:border-black"
             >
-              <option>Select Profession</option>
-              <option>Doctor</option>
-              <option>Lawyer</option>
-              <option>Plumber</option>
-              <option>Tutor</option>
-              <option>Electrician</option>
-              <option>Other</option>
+              <option value="" disabled>Select Profession</option>
+              <option value="Plumber">Plumber</option>
+              <option value="Electrician">Electrician</option>
+              <option value="Carpenter">Carpenter</option>
+              <option value="Painter">Painter</option>
+              <option value="Mechanic">Mechanic</option>
+              <option value="Cleaner">Cleaner</option>
+              <option value="AC Technician">AC Technician</option>
+              <option value="RO Technician">RO Technician</option>
+              <option value="Tutor">Tutor</option>
+              <option value="Driver">Driver</option>
+              <option value="Home Maid">Home Maid</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
           {/* Experience */}
-          <div>
-            <label className="block text-gray-700">Experience (Years)</label>
+          <div className="relative md:col-span-1">
             <input
               type="number"
               name="experience"
+              id="experience"
+              placeholder=" "
               value={formData.experience}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="e.g. 5"
+              required
+              min="0"
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="experience" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Experience (Years)
+            </label>
           </div>
 
           {/* Qualification */}
-          <div>
-            <label className="block text-gray-700">Qualification</label>
+          <div className="relative md:col-span-1">
             <input
               type="text"
               name="qualification"
+              id="qualification"
+              placeholder=" "
               value={formData.qualification}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="e.g. MBBS, ITI, B.Tech"
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="qualification" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Qualification (e.g. ITI, B.Tech)
+            </label>
           </div>
 
           {/* Service Area */}
-          <div>
-            <label className="block text-gray-700">
-              Service Area / Pincode
-            </label>
+          <div className="relative md:col-span-1">
             <input
               type="text"
               name="service_area"
+              id="service_area"
+              placeholder=" "
               value={formData.service_area}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="e.g. 560001"
+              required
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer"
             />
+            <label htmlFor="service_area" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Service Area City / Pincode
+            </label>
           </div>
 
           {/* Bio */}
-          <div className="md:col-span-2">
-            <label className="block text-gray-700">Short Bio</label>
+          <div className="relative md:col-span-2">
             <textarea
               name="bio"
+              id="bio"
+              placeholder=" "
               value={formData.bio}
               onChange={handleChange}
-              className="w-full p-3 mt-1 border rounded-lg focus:ring-2 focus:ring-green-500"
+              required
               rows="3"
-              placeholder="Tell clients about your experience and services..."
-            />
+              className="block px-4 pb-2.5 pt-5 w-full text-base text-gray-900 bg-gray-50 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-0 focus:border-black peer resize-none"
+            ></textarea>
+            <label htmlFor="bio" className="absolute text-gray-500 duration-300 transform -translate-y-3 scale-75 top-4 z-10 origin-[0] left-4 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3">
+              Short Bio
+            </label>
           </div>
 
-          {/* Submit */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 mt-2">
             <button
               type="submit"
-              className="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700"
+              disabled={loading}
+              className="w-full bg-black text-white py-4 rounded-lg font-medium text-lg hover:bg-gray-800 transition disabled:opacity-50"
             >
-              Register Now
+              {loading ? "Registering..." : "Register Now"}
             </button>
           </div>
         </form>
+
+        <p className="text-center text-sm text-gray-600 mt-8">
+          Already have an account?{" "}
+          <Link to="/login" className="text-black font-semibold hover:underline">
+            Log in
+          </Link>
+        </p>
       </div>
     </div>
   );

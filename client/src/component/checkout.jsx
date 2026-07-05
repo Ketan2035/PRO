@@ -17,7 +17,7 @@ const Checkout = () => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await fetch("https://pro-backend-gray.vercel.app/api/me", {
+        const res = await fetch("http://localhost:3000/api/me", {
           credentials: "include",
         });
 
@@ -47,7 +47,7 @@ const Checkout = () => {
     const fetchPro = async () => {
       try {
         const res = await fetch(
-          `https://pro-backend-gray.vercel.app/api/professionals/${id}`,
+          `http://localhost:3000/api/professionals/${id}`,
         );
         const data = await res.json();
 
@@ -73,7 +73,7 @@ const Checkout = () => {
 
     try {
       const res = await fetch(
-        "https://pro-backend-gray.vercel.app/api/booking",
+        "http://localhost:3000/api/booking",
         {
           method: "POST",
           headers: {
@@ -142,11 +142,10 @@ const Checkout = () => {
               addresses.map((addr, i) => (
                 <label
                   key={i}
-                  className={`block border p-3 mb-2 rounded-lg cursor-pointer ${
-                    selectedAddress === addr
-                      ? "border-black bg-gray-100"
-                      : "hover:border-gray-400"
-                  }`}
+                  className={`block border p-3 mb-2 rounded-lg cursor-pointer ${selectedAddress === addr
+                    ? "border-black bg-gray-100"
+                    : "hover:border-gray-400"
+                    }`}
                 >
                   <input
                     type="radio"
@@ -178,11 +177,10 @@ const Checkout = () => {
                 <button
                   key={t}
                   onClick={() => setSelectedTime(t)}
-                  className={`px-4 py-2 border rounded-lg ${
-                    selectedTime === t
-                      ? "bg-black text-white"
-                      : "hover:bg-gray-200"
-                  }`}
+                  className={`px-4 py-2 border rounded-lg ${selectedTime === t
+                    ? "bg-black text-white"
+                    : "hover:bg-gray-200"
+                    }`}
                 >
                   {t}
                 </button>
@@ -235,11 +233,10 @@ const Checkout = () => {
             <button
               onClick={handleBooking}
               disabled={!selectedAddress || !selectedDate || !selectedTime}
-              className={`w-full mt-5 py-3 rounded-lg font-semibold ${
-                selectedAddress && selectedDate && selectedTime
-                  ? "bg-yellow-500 hover:bg-yellow-600"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
+              className={`w-full mt-5 py-3 rounded-lg font-semibold ${selectedAddress && selectedDate && selectedTime
+                ? "bg-yellow-500 hover:bg-yellow-600"
+                : "bg-gray-300 cursor-not-allowed"
+                }`}
             >
               Confirm Booking
             </button>

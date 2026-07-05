@@ -10,7 +10,7 @@ export default function AddressPicker() {
   const sendAddress = async () => {
     try {
       const res = await fetch(
-        "https://pro-backend-gray.vercel.app/api/user/address",
+        "http://localhost:3000/api/user/address",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

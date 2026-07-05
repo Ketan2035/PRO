@@ -19,8 +19,10 @@ const ProfessionalDetail = () => {
 
     navigate(`/checkout/${pro._id}`);
   };
+  const [reviews, setReviews] = useState([]);
+
   useEffect(() => {
-    fetch(`https://pro-backend-gray.vercel.app/api/professionals/${id}`)
+    fetch(`http://localhost:3000/api/professionals/${id}`)
       .then((res) => res.json())
       .then((data) => {
         setPro(data.user);
@@ -30,6 +32,16 @@ const ProfessionalDetail = () => {
         console.log(err);
         setLoading(false);
       });
+
+    // Fetch Reviews
+    fetch(`http://localhost:3000/api/reviews/professional/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setReviews(data.reviews);
+        }
+      })
+      .catch((err) => console.log(err));
   }, [id]);
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
@@ -40,7 +52,7 @@ const ProfessionalDetail = () => {
       {/* TOP SECTION */}
       <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col md:flex-row gap-6">
         <img
-          src={pro.profileImage?.url}
+          src={pro.profileImage?.url || `https://ui-avatars.com/api/?name=${pro.name}&background=random`}
           alt={pro.name}
           className="w-40 h-40 rounded-xl object-cover"
         />
@@ -50,12 +62,12 @@ const ProfessionalDetail = () => {
           <p className="text-gray-600">{pro.profession}</p>
 
           <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
-            <span className="flex items-center gap-1">
-              <Star size={16} /> {pro.rating}
+            <span className="flex items-center gap-1 text-yellow-500 font-semibold">
+              <Star size={16} fill="currentColor" /> {pro.rating || "0.0"} ({pro.totalReviews || 0} reviews)
             </span>
 
             <span className="flex items-center gap-1">
-              <MapPin size={16} /> {pro.address?.city}
+              <MapPin size={16} /> {pro.address?.city || pro.service_area}
             </span>
           </div>
 
@@ -72,7 +84,7 @@ const ProfessionalDetail = () => {
 
           <button
             onClick={handleBookNow}
-            className="mt-6 bg-black text-white px-6 py-2 rounded-xl hover:bg-gray-800"
+            className="mt-6 bg-black text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition font-medium"
           >
             Book Now
           </button>
@@ -109,16 +121,50 @@ const ProfessionalDetail = () => {
             <b>Service Area:</b> {pro.service_area}
           </p>
           <p>
-            <b>Total Reviews:</b> {pro.totalReviews}
+            <b>Total Reviews:</b> {pro.totalReviews || 0}
           </p>
           <p>
             <b>Available:</b> {pro.isAvailable ? "Yes" : "No"}
           </p>
           <p>
-            <b>Working Hours:</b> {pro.workingHours?.start} -{" "}
-            {pro.workingHours?.end}
+            <b>Working Hours:</b> {pro.workingHours?.start || "09:00 AM"} -{" "}
+            {pro.workingHours?.end || "07:00 PM"}
           </p>
         </div>
+      </div>
+
+      {/* CUSTOMER REVIEWS */}
+      <div className="mt-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold mb-6 text-gray-900">Customer Reviews & Ratings</h2>
+
+        {reviews.length === 0 ? (
+          <p className="text-gray-500 text-sm">No reviews yet for this professional.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev._id} className="border-b last:border-b-0 pb-4 last:pb-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={rev.customer?.profileImage?.url || `https://ui-avatars.com/api/?name=${rev.customer?.name || "User"}&background=random`}
+                      alt={rev.customer?.name}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-800">{rev.customer?.name || "Verified Customer"}</h4>
+                      <p className="text-xs text-gray-400">{new Date(rev.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 text-yellow-500 font-bold text-sm bg-yellow-50 px-2.5 py-1 rounded-lg">
+                    <span>★</span>
+                    <span>{rev.rating}.0</span>
+                  </div>
+                </div>
+                {rev.comment && <p className="text-sm text-gray-600 mt-2 pl-12">{rev.comment}</p>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

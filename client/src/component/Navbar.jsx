@@ -18,7 +18,7 @@ export default function Navbar() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("https://pro-backend-gray.vercel.app/api/me", {
+        const res = await fetch("http://localhost:3000/api/me", {
           credentials: "include",
         });
 
@@ -41,7 +41,7 @@ export default function Navbar() {
   }, []);
 
   const logout = async () => {
-    await fetch("https://pro-backend-gray.vercel.app/api/logout", {
+    await fetch("http://localhost:3000/api/logout", {
       method: "POST",
       credentials: "include",
     });

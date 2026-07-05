@@ -1,5 +1,27 @@
 @import "tailwindcss";
-body{
-    @apply  bg-gradient-to-r from-gray-50 to-gray-50
 
+@theme {
+  --color-primary: #000000;
+  --color-primary-foreground: #ffffff;
+  --color-accent: #2563eb;
+  --color-accent-foreground: #ffffff;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+  --color-muted: #f1f5f9;
+  --color-muted-foreground: #64748b;
+  --color-border: #e2e8f0;
+  
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--color-foreground);
+    background-color: var(--color-background);
+  }
+
+  body {
+    @apply antialiased text-slate-900 bg-slate-50;
+  }
 }
