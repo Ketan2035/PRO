@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { socket } from "../socket";
 
 export default function SocketListener() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const processedNotifs = useRef(new Set());
 
   useEffect(() => {
     // Check authentication
@@ -30,61 +31,45 @@ export default function SocketListener() {
 
     checkAndConnect();
 
-    // Listen for real-time booking updates
-    const handleBookingUpdate = (booking) => {
-      const statusText = booking.status ? booking.status.replace("_", " ").toUpperCase() : "UPDATED";
-      const message = `Booking Update: Service "${booking.service || 'Request'}" status is now ${statusText}`;
+    // Listen for real-time notifications globally
+    const handleNewNotif = (notif) => {
+      // Deduplicate: prevent showing toast if we've already processed this exact notification ID
+      const notifId = notif._id || notif.id;
+      if (notifId && processedNotifs.current.has(notifId)) return;
+      if (notifId) processedNotifs.current.add(notifId);
 
-      // Toast notification
+      // Toast alert
       toast.custom((t) => (
-        <div
-          className={`${
-            t.visible ? 'animate-enter' : 'animate-leave'
-          } max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 border-l-4 border-blue-600`}
-        >
+        <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 border-l-4 border-[#2874f0]`}>
           <div className="flex-1 w-0">
             <div className="flex items-start">
               <div className="flex-shrink-0 pt-0.5">
                 <span className="text-2xl">🔔</span>
               </div>
               <div className="ml-3 flex-1">
-                <p className="text-sm font-semibold text-gray-900">
-                  Urban Saathi Alert
-                </p>
-                <p className="mt-1 text-xs text-gray-600">
-                  {message}
-                </p>
+                <p className="text-sm font-semibold text-gray-900">{notif.title}</p>
+                <p className="mt-1 text-xs text-gray-600">{notif.message}</p>
               </div>
             </div>
           </div>
           <div className="flex border-l border-gray-200 pl-3 ml-3">
-            <button
-              onClick={() => toast.dismiss(t.id)}
-              className="text-xs text-gray-400 hover:text-black font-medium"
-            >
+            <button onClick={() => toast.dismiss(t.id)} className="text-xs text-gray-400 hover:text-black font-medium">
               Close
             </button>
           </div>
         </div>
-      ), { duration: 5000 });
+      ), { id: notif._id || notif.id || Date.now().toString(), duration: 5000 });
 
-      setNotifications((prev) => [
-        {
-          id: Date.now(),
-          message,
-          status: booking.status,
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          read: false,
-        },
-        ...prev,
-      ]);
-      setUnreadCount((prev) => prev + 1);
+      // Tell all dropdowns to refresh their lists
+      window.dispatchEvent(new CustomEvent("refresh-notifications"));
     };
 
-    socket.on("bookingUpdated", handleBookingUpdate);
+    // Remove any ghost listeners from HMR or StrictMode
+    socket.off("newNotification");
+    socket.on("newNotification", handleNewNotif);
 
     return () => {
-      socket.off("bookingUpdated", handleBookingUpdate);
+      socket.off("newNotification", handleNewNotif);
       socket.disconnect();
     };
   }, []);

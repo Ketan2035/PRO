@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, MapPin, Star, Navigation, Zap, Droplets, Paintbrush, Scissors, Wind, PenTool, ShieldCheck, Clock, Award } from "lucide-react";
 import MapModal from "../components/MapModal";
@@ -23,8 +23,10 @@ function SprayCanIcon(props) {
 
 const Home = () => {
   const [professionals, setProfessionals] = useState([]);
+  const [allProfessionals, setAllProfessionals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
   const [location, setLocation] = useState(null); // { lat, lng }
   const [locationName, setLocationName] = useState("");
   const [isMapOpen, setIsMapOpen] = useState(false);
@@ -42,6 +44,10 @@ const Home = () => {
 
   const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
+  const displayedProfessionals = useMemo(() => {
+    return shuffleArray(professionals).slice(0, 8);
+  }, [professionals]);
+
   useEffect(() => {
     fetchProfessionals();
   }, []);
@@ -56,7 +62,9 @@ const Home = () => {
       }
       const res = await fetch(url);
       const data = await res.json();
-      setProfessionals(data.data || data.professionals || []);
+      const fetchedPros = data.data || data.professionals || [];
+      setProfessionals(fetchedPros);
+      if (!lat && !lng) setAllProfessionals(fetchedPros);
     } catch (err) {
       console.log(err);
     } finally {
@@ -65,11 +73,15 @@ const Home = () => {
   };
 
   const handleSearch = () => {
+    setHasSearched(true);
     if (location) {
       fetchProfessionals(location.lat, location.lng, search);
     } else {
-      const filtered = professionals.filter((pro) =>
-        pro.profession.toLowerCase().includes(search.toLowerCase())
+      const query = search.toLowerCase();
+      const filtered = allProfessionals.filter((pro) =>
+        (pro.profession && pro.profession.toLowerCase().includes(query)) ||
+        (pro.name && pro.name.toLowerCase().includes(query)) ||
+        (pro.address?.city && pro.address.city.toLowerCase().includes(query))
       );
       setProfessionals(filtered);
     }
@@ -145,25 +157,27 @@ const Home = () => {
 
       <MapModal isOpen={isMapOpen} onClose={() => setIsMapOpen(false)} onSelectLocation={handleLocationSelect} />
 
-      {/* 3. Hero Carousel Banner */}
-      <div className="max-w-7xl mx-auto px-2 md:px-4 mb-6">
-        <div className="relative w-full h-[180px] md:h-[350px] overflow-hidden rounded-sm shadow-sm bg-gray-200 group">
-          {banners.map((img, idx) => (
-            <img 
-              key={idx} 
-              src={img} 
-              alt={`Banner ${idx}`} 
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${idx === currentSlide ? "opacity-100" : "opacity-0"}`} 
-            />
-          ))}
-          {/* Navigation Dots */}
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
-            {banners.map((_, idx) => (
-              <div key={idx} className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? "bg-white w-4" : "bg-white/50"}`} />
+      {/* 3. Hero Carousel Banner - Hidden on Search */}
+      {!hasSearched && (
+        <div className="max-w-7xl mx-auto px-2 md:px-4 mb-6">
+          <div className="relative w-full h-[180px] md:h-[350px] overflow-hidden rounded-sm shadow-sm bg-gray-200 group">
+            {banners.map((img, idx) => (
+              <img 
+                key={idx} 
+                src={img} 
+                alt={`Banner ${idx}`} 
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${idx === currentSlide ? "opacity-100" : "opacity-0"}`} 
+              />
             ))}
+            {/* Navigation Dots */}
+            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
+              {banners.map((_, idx) => (
+                <div key={idx} className={`w-2 h-2 rounded-full transition-all ${idx === currentSlide ? "bg-white w-4" : "bg-white/50"}`} />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 4. Trust Badges (Like Flipkart/Amazon promises) */}
       <div className="max-w-7xl mx-auto px-2 md:px-4 mb-6">
@@ -178,10 +192,14 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-2 md:px-4">
         <div className="bg-white rounded-sm shadow-sm p-4 md:p-6 border-t-[3px] border-[#2874f0]">
           <div className="flex items-center justify-between mb-6 border-b pb-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900">Top Rated Professionals Near You</h2>
-            <button className="bg-[#2874f0] text-white px-4 py-2 text-sm font-medium rounded-sm hover:bg-blue-700 shadow-sm transition">
-              View All
-            </button>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+              {hasSearched ? `Search Results for "${search}"` : "Top Rated Professionals Near You"}
+            </h2>
+            {hasSearched && (
+               <button onClick={() => { setSearch(""); setHasSearched(false); setProfessionals(allProfessionals); }} className="text-sm font-medium text-[#2874f0] hover:underline">
+                 Clear Search
+               </button>
+            )}
           </div>
 
           {loading ? (
@@ -190,7 +208,7 @@ const Home = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {professionals.length > 0 ? shuffleArray(professionals).slice(0, 8).map((pro) => (
+              {displayedProfessionals.length > 0 ? displayedProfessionals.map((pro) => (
                 <div key={pro._id} onClick={() => navigate(`/profile/${pro._id}`)} className="group cursor-pointer border border-gray-200 rounded-sm hover:shadow-lg transition bg-white flex flex-col h-full">
                   {/* Card Header / Image */}
                   <div className="relative w-full h-48 bg-gray-100 overflow-hidden flex items-center justify-center p-4">

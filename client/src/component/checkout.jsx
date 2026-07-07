@@ -14,6 +14,7 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("online");
   
   const [loading, setLoading] = useState(true);
   const [activeStep, setActiveStep] = useState(1); // 1: Address, 2: Slot, 3: Review
@@ -73,6 +74,7 @@ const Checkout = () => {
         address: selectedAddress,
         date: selectedDate,
         time: selectedTime,
+        paymentMethod: paymentMethod,
       }),
     }).then(async (res) => {
       const data = await res.json();
@@ -308,14 +310,32 @@ const Checkout = () => {
                 <span className="text-green-600">Free</span>
               </div>
               <div className="flex justify-between">
-                <span>Platform Fee</span>
-                <span>₹49</span>
+                <span>Platform Fee (10%)</span>
+                <span>₹{Math.round(pro.pricePerHour * 0.1)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Taxes (5%)</span>
+                <span>₹{Math.round(pro.pricePerHour * 0.05)}</span>
               </div>
             </div>
 
             <div className="border-t border-dashed border-gray-300 my-4 pt-4 flex justify-between font-bold text-lg text-gray-900">
               <span>Amount Payable</span>
-              <span>₹{pro.pricePerHour + 49}</span>
+              <span>₹{Math.round(pro.pricePerHour + (pro.pricePerHour * 0.1) + (pro.pricePerHour * 0.05))}</span>
+            </div>
+            
+            <div className="mb-6">
+              <h3 className="text-gray-500 uppercase text-xs font-bold tracking-wider mb-2">Payment Method</h3>
+              <div className="flex gap-2">
+                <label className={`flex-1 border p-3 rounded text-center cursor-pointer font-medium text-sm transition ${paymentMethod === 'online' ? 'border-[#2874f0] bg-blue-50 text-[#2874f0]' : 'border-gray-200 text-gray-600'}`}>
+                  <input type="radio" name="paymentMethod" value="online" checked={paymentMethod === 'online'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
+                  Pay Online
+                </label>
+                <label className={`flex-1 border p-3 rounded text-center cursor-pointer font-medium text-sm transition ${paymentMethod === 'cash' ? 'border-[#2874f0] bg-blue-50 text-[#2874f0]' : 'border-gray-200 text-gray-600'}`}>
+                  <input type="radio" name="paymentMethod" value="cash" checked={paymentMethod === 'cash'} onChange={(e) => setPaymentMethod(e.target.value)} className="hidden" />
+                  Pay via Cash
+                </label>
+              </div>
             </div>
 
             <p className="text-xs text-green-600 font-medium mb-6">Final price may vary based on actual work required.</p>

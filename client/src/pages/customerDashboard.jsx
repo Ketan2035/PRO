@@ -3,7 +3,10 @@ import toast from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
 import PaymentModal from "../components/PaymentModal";
 import ReviewModal from "../components/ReviewModal";
-import { Package, User, MapPin, LogOut, ChevronRight, CheckCircle2, Clock, XCircle, CreditCard, Star } from "lucide-react";
+import LiveTrackingMap from "../components/LiveTrackingMap";
+import ChatBox from "../components/ChatBox";
+import BookingDetailsModal from "../components/BookingDetailsModal";
+import { Package, User, MapPin, LogOut, ChevronRight, CheckCircle2, Clock, XCircle, CreditCard, Star, Navigation, MessageSquare } from "lucide-react";
 
 export default function CustomerProfile() {
   const [user, setUser] = useState(null);
@@ -14,6 +17,9 @@ export default function CustomerProfile() {
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [paymentBooking, setPaymentBooking] = useState(null); 
   const [reviewBooking, setReviewBooking] = useState(null); 
+  const [trackingBookingId, setTrackingBookingId] = useState(null); 
+  const [chatBooking, setChatBooking] = useState(null); 
+  const [detailsBooking, setDetailsBooking] = useState(null);
 
   const navigate = useNavigate();
 
@@ -122,6 +128,15 @@ export default function CustomerProfile() {
       {reviewBooking && (
         <ReviewModal booking={reviewBooking} onClose={() => setReviewBooking(null)} />
       )}
+      {trackingBookingId && (
+        <LiveTrackingMap bookingId={trackingBookingId} onClose={() => setTrackingBookingId(null)} />
+      )}
+      {chatBooking && (
+        <ChatBox bookingId={chatBooking._id} senderId={user._id || user.id} senderModel="Customer" partnerName={chatBooking.professional?.name} onClose={() => setChatBooking(null)} />
+      )}
+      {detailsBooking && (
+        <BookingDetailsModal booking={detailsBooking} onClose={() => setDetailsBooking(null)} viewerRole="customer" />
+      )}
 
       {/* Breadcrumb */}
       <div className="max-w-6xl mx-auto px-4 py-4 text-sm text-gray-600">
@@ -223,10 +238,17 @@ export default function CustomerProfile() {
                              <img src={`https://ui-avatars.com/api/?name=${booking.professional?.name || "Pro"}&background=random`} alt="Pro" className="w-full h-full object-cover" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-[#007185] hover:underline cursor-pointer hover:text-orange-600 text-lg">
-                              {booking.service} Service
-                            </h3>
-                            <p className="text-sm text-gray-700 mt-1">Professional: <span className="font-medium">{booking.professional?.name}</span></p>
+                            <Link to={`/profile/${booking.professional?._id}`}>
+                              <h3 className="font-semibold text-[#007185] hover:underline cursor-pointer hover:text-orange-600 text-lg">
+                                {booking.service} Service
+                              </h3>
+                            </Link>
+                            <p className="text-sm text-gray-700 mt-1">
+                              Professional: 
+                              <Link to={`/profile/${booking.professional?._id}`} className="font-medium hover:underline ml-1">
+                                {booking.professional?.name}
+                              </Link>
+                            </p>
                             <p className="text-sm text-gray-500 mt-0.5">Scheduled for: {new Date(booking.date).toLocaleDateString()} at {booking.time}</p>
                             
                             {/* Status Pill */}
@@ -240,6 +262,7 @@ export default function CustomerProfile() {
                                   "text-yellow-700"}`
                               }>
                                 {(booking.status || "").replace("_", " ")}
+                                {booking.status === "cancelled" && booking.cancelledBy ? ` (by ${booking.cancelledBy === 'customer' ? 'you' : booking.cancelledBy})` : ""}
                               </span>
                             </div>
                           </div>
@@ -252,11 +275,29 @@ export default function CustomerProfile() {
                               Cancel Booking
                             </button>
                           )}
+
+                          {booking.status === "on_the_way" && (
+                            <button onClick={() => setTrackingBookingId(booking._id)} className="w-full bg-blue-500 hover:bg-blue-600 text-white shadow-sm text-sm font-medium py-1.5 rounded-md flex justify-center items-center gap-1 transition">
+                              <Navigation size={16} /> Track Professional
+                            </button>
+                          )}
                           
-                          {booking.status === "completed" && booking.paymentStatus !== "paid" && (
+                          {["accepted", "on_the_way", "in_progress"].includes(booking.status) && (
+                            <button onClick={() => setChatBooking(booking)} className="w-full bg-white border border-[#2874f0] text-[#2874f0] shadow-sm text-sm font-medium py-1.5 rounded-md hover:bg-blue-50 flex justify-center items-center gap-1 transition">
+                              <MessageSquare size={16} /> Message {booking.professional?.name.split(" ")[0] || "Pro"}
+                            </button>
+                          )}
+                          
+                          {booking.status === "completed" && booking.paymentStatus !== "paid" && booking.paymentMethod !== "cash" && (
                             <button onClick={() => setPaymentBooking(booking)} className="w-full bg-[#FFD814] hover:bg-[#F7CA00] text-black border border-[#FCD200] shadow-sm text-sm font-medium py-1.5 rounded-md flex justify-center items-center gap-1">
                               <CreditCard size={16} /> Pay Now (₹{booking.price})
                             </button>
+                          )}
+
+                          {booking.status === "completed" && booking.paymentStatus !== "paid" && booking.paymentMethod === "cash" && (
+                            <div className="w-full bg-orange-50 text-orange-700 border border-orange-200 shadow-sm text-sm font-medium py-2 px-1 rounded-md flex justify-center items-center text-center">
+                              Please pay ₹{booking.price} in cash to professional
+                            </div>
                           )}
 
                           {booking.status === "completed" && booking.paymentStatus === "paid" && (
@@ -264,7 +305,7 @@ export default function CustomerProfile() {
                               <Star size={16} className="text-yellow-500" /> Write a review
                             </button>
                           )}
-                          <button className="w-full bg-white border border-gray-300 shadow-sm text-sm font-medium py-1.5 rounded-md hover:bg-gray-50 text-gray-700">
+                          <button onClick={() => setDetailsBooking(booking)} className="w-full bg-white border border-gray-300 shadow-sm text-sm font-medium py-1.5 rounded-md hover:bg-gray-50 text-gray-700">
                             View Booking Details
                           </button>
                         </div>

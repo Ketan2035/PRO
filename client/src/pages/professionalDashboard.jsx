@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate, Link } from "react-router-dom";
-import { LayoutDashboard, CalendarDays, User, Star, Settings, LogOut, CheckCircle2, XCircle, Clock, CreditCard, ChevronRight, TrendingUp, MapPin } from "lucide-react";
+import { LayoutDashboard, CalendarDays, User, Star, Settings, LogOut, CheckCircle2, XCircle, Clock, CreditCard, ChevronRight, TrendingUp, MapPin, Navigation, MessageSquare } from "lucide-react";
+import { socket } from "../socket";
+import ChatBox from "../components/ChatBox";
+import EarningsChart from "../components/EarningsChart";
 
 export default function ProfessionalProfile() {
   const [user, setUser] = useState(null);
@@ -9,8 +12,12 @@ export default function ProfessionalProfile() {
   const [edit, setEdit] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [analytics, setAnalytics] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [trackingBookingId, setTrackingBookingId] = useState(null);
+  const [watchId, setWatchId] = useState(null);
+  const [chatBooking, setChatBooking] = useState(null);
 
   const navigate = useNavigate();
 
@@ -23,11 +30,20 @@ export default function ProfessionalProfile() {
           setUser(data.user);
           setIsAvailable(data.user.isAvailable ?? true);
           fetchReviews(data.user._id);
+          fetchAnalytics();
         }
       } catch (err) { console.error(err); }
     };
     fetchUser();
   }, []);
+
+  const fetchAnalytics = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/booking/analytics", { credentials: "include" });
+      const data = await res.json();
+      if (data.success) setAnalytics(data.data);
+    } catch (err) { console.error("Error fetching analytics", err); }
+  };
 
   const fetchReviews = async (proId) => {
     try {
@@ -83,10 +99,72 @@ export default function ProfessionalProfile() {
       if (data.success) {
         toast.success(`Booking ${status}`);
         setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, status, price: finalPrice || b.price } : b)));
+        if (status === "completed" || status === "cancelled") {
+           if (trackingBookingId === id) stopTracking();
+        }
       } else {
         toast.error(data.message || "Failed to update status");
       }
     } catch (err) { toast.error("Error updating status"); }
+  };
+
+  const collectCash = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/payment/cash-collected`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ bookingId: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Cash payment recorded securely");
+        setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, paymentStatus: "paid" } : b)));
+        fetchAnalytics(); // Refresh the wallet balance
+      } else {
+        toast.error(data.message || "Failed to record cash payment");
+      }
+    } catch (err) {
+      toast.error("Error recording cash payment");
+    }
+  };
+
+  const startTracking = (bookingId) => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+    
+    // Make sure socket is connected and join the room
+    if (!socket.connected) socket.connect();
+    socket.emit("joinBooking", bookingId);
+
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        socket.emit("updateLocation", {
+          bookingId,
+          location: { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        });
+      },
+      (err) => {
+        console.error(err);
+        toast.error("Error accessing location");
+      },
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+    
+    setWatchId(id);
+    setTrackingBookingId(bookingId);
+    toast.success("Live location sharing started");
+  };
+
+  const stopTracking = () => {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+      setTrackingBookingId(null);
+      toast.success("Live location sharing stopped");
+    }
   };
 
   const logout = async () => {
@@ -104,10 +182,14 @@ export default function ProfessionalProfile() {
   // Analytics Calculations
   const completedJobs = bookings.filter((b) => b.status === "completed").length;
   const pendingJobs = bookings.filter((b) => b.status === "pending").length;
-  const totalEarnings = bookings.filter((b) => b.status === "completed" && b.paymentStatus === "paid").reduce((sum, b) => sum + (b.price || 0), 0);
+  const totalEarnings = bookings.filter((b) => b.status === "completed").reduce((sum, b) => sum + (b.price || 0), 0);
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans pb-16">
+      {chatBooking && (
+        <ChatBox bookingId={chatBooking._id} senderId={user._id || user.id} senderModel="Professional" partnerName={chatBooking.customer?.name} onClose={() => setChatBooking(null)} />
+      )}
+      
       {/* Professional Dashboard Header */}
       <div className="bg-[#172337] text-white py-3 px-6 shadow-md flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -177,27 +259,36 @@ export default function ProfessionalProfile() {
           {/* DASHBOARD (Analytics) */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-900">Performance Metrics</h2>
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-semibold text-gray-900">Performance Metrics</h2>
+                <div className="text-sm text-gray-500 font-medium">Last 30 Days Overview</div>
+              </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-blue-500">
-                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Total Revenue</p>
-                   <h3 className="text-3xl font-bold text-gray-900">₹{totalEarnings.toLocaleString()}</h3>
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Available Wallet</p>
+                   <h3 className="text-3xl font-bold text-gray-900">₹{(user.walletBalance || 0).toLocaleString()}</h3>
                 </div>
                 <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-green-500">
-                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Completed Jobs</p>
-                   <h3 className="text-3xl font-bold text-gray-900">{completedJobs}</h3>
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Lifetime Earnings</p>
+                   <h3 className="text-3xl font-bold text-gray-900">₹{(user.lifetimeEarnings || 0).toLocaleString()}</h3>
                 </div>
                 <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-yellow-500">
-                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Pending Requests</p>
-                   <h3 className="text-3xl font-bold text-gray-900">{pendingJobs}</h3>
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Cash to Platform</p>
+                   <h3 className="text-3xl font-bold text-gray-900 text-red-500">₹{(user.cashInHand || 0).toLocaleString()}</h3>
                 </div>
                 <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 border-t-4 border-t-orange-500">
-                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Avg Rating</p>
+                   <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider mb-2">Completed Jobs</p>
                    <div className="flex items-center gap-2">
-                     <h3 className="text-3xl font-bold text-gray-900">{user.rating || "0.0"}</h3>
-                     <Star size={24} className="text-yellow-500 fill-yellow-500 mt-1" />
+                     <h3 className="text-3xl font-bold text-gray-900">{completedJobs}</h3>
                    </div>
                 </div>
+              </div>
+
+              {/* Earnings Chart Section */}
+              <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200 mt-6">
+                <h3 className="text-lg font-bold text-gray-900 mb-6">Revenue Trend (Last 30 Days)</h3>
+                <EarningsChart data={analytics} />
               </div>
             </div>
           )}
@@ -252,13 +343,14 @@ export default function ProfessionalProfile() {
 
                             <div className="flex items-center gap-2">
                               Status: 
-                              <span className={`text-xs font-bold uppercase px-2 py-1 rounded-sm
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold capitalize 
                                 ${booking.status === "completed" ? "bg-green-100 text-green-700" : 
                                   booking.status === "cancelled" ? "bg-red-100 text-red-700" : 
                                   booking.status === "pending" ? "bg-yellow-100 text-yellow-700" :
                                   "bg-blue-100 text-blue-700"}`
                               }>
                                 {(booking.status || "").replace("_", " ")}
+                                {booking.status === "cancelled" && booking.cancelledBy ? ` (by ${booking.cancelledBy === 'professional' ? 'you' : booking.cancelledBy})` : ""}
                               </span>
                             </div>
                             {booking.status === "completed" && (
@@ -279,10 +371,33 @@ export default function ProfessionalProfile() {
                               <button onClick={() => updateStatus(booking._id, "on_the_way")} className="bg-[#2874f0] hover:bg-blue-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Mark On The Way</button>
                             )}
                             {booking.status === "on_the_way" && (
-                              <button onClick={() => updateStatus(booking._id, "in_progress")} className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Start Job</button>
+                              <>
+                                <button onClick={() => updateStatus(booking._id, "in_progress")} className="bg-yellow-500 hover:bg-yellow-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Start Job</button>
+                                {trackingBookingId === booking._id ? (
+                                  <button onClick={stopTracking} className="bg-red-500 hover:bg-red-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition flex items-center justify-center gap-1">
+                                    <XCircle size={16} /> Stop Sharing
+                                  </button>
+                                ) : (
+                                  <button onClick={() => startTracking(booking._id)} className="bg-blue-500 hover:bg-blue-600 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition flex items-center justify-center gap-1">
+                                    <Navigation size={16} /> Share Location
+                                  </button>
+                                )}
+                              </>
                             )}
                             {booking.status === "in_progress" && (
                               <button onClick={() => updateStatus(booking._id, "completed")} className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-sm font-medium py-2 rounded-sm transition">Complete Job</button>
+                            )}
+                            
+                            {booking.status === "completed" && booking.paymentMethod === "cash" && booking.paymentStatus !== "paid" && (
+                              <button onClick={() => collectCash(booking._id)} className="bg-green-600 hover:bg-green-700 text-white shadow-sm text-sm font-bold py-3 rounded-sm transition shadow-md">
+                                Collect ₹{booking.price} Cash
+                              </button>
+                            )}
+                            
+                            {["accepted", "on_the_way", "in_progress"].includes(booking.status) && (
+                              <button onClick={() => setChatBooking(booking)} className="bg-white border border-[#2874f0] text-[#2874f0] hover:bg-blue-50 shadow-sm text-sm font-medium py-2 rounded-sm transition flex items-center justify-center gap-1 mt-1">
+                                <MessageSquare size={16} /> Message Customer
+                              </button>
                             )}
                           </div>
                         </div>

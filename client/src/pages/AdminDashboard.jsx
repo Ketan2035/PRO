@@ -51,26 +51,30 @@ export default function AdminDashboard() {
     fetchAdminData();
   }, [navigate]);
 
-  const handleVerify = async (proId, verifyStatus) => {
+  const handleVerify = async (proId, status) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/admin/professional/${proId}/verify`, {
+      const reason = status === "rejected" ? prompt("Please enter a reason for rejection:") : "";
+      
+      const res = await fetch(`http://localhost:3000/api/admin/professional/${proId}/verification`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ isVerified: verifyStatus }),
+        body: JSON.stringify({ status, reason }),
       });
       
       const data = await res.json();
       if (data.success) {
         toast.success(data.message);
         setProfessionals((prev) =>
-          prev.map((p) => (p._id === proId ? { ...p, isVerified: verifyStatus } : p))
+          prev.map((p) => (p._id === proId ? { ...p, verificationStatus: status } : p))
         );
         // Update stats summary manually
-        setStats((prev) => ({
-          ...prev,
-          pendingVerifications: verifyStatus ? prev.pendingVerifications - 1 : prev.pendingVerifications + 1
-        }));
+        if (status === "verified" || status === "rejected") {
+          setStats((prev) => ({
+            ...prev,
+            pendingVerifications: prev.pendingVerifications - 1
+          }));
+        }
       }
     } catch (err) {
       toast.error("Verification update failed");
@@ -89,8 +93,8 @@ export default function AdminDashboard() {
 
   if (loading) return <p className="text-center mt-20 text-gray-500 font-semibold">Loading Admin Dashboard...</p>;
 
-  const pendingPros = professionals.filter(p => !p.isVerified);
-  const verifiedPros = professionals.filter(p => p.isVerified);
+  const pendingPros = professionals.filter(p => p.verificationStatus === "pending");
+  const verifiedPros = professionals.filter(p => p.verificationStatus === "verified");
 
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
@@ -163,7 +167,17 @@ export default function AdminDashboard() {
               
               <div className="bg-gray-900 text-white p-6 rounded-3xl shadow-lg border border-gray-800 flex flex-col justify-center">
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Gross Booking Value</p>
-                <h2 className="text-4xl font-black text-white">₹{stats?.totalRevenue}</h2>
+                <h2 className="text-4xl font-black text-white">₹{stats?.totalGrossRevenue || 0}</h2>
+              </div>
+              
+              <div className="bg-blue-600 text-white p-6 rounded-3xl shadow-lg border border-blue-500 flex flex-col justify-center md:col-span-2">
+                <p className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Net Platform Revenue (Commission)</p>
+                <h2 className="text-4xl font-black text-white">₹{stats?.totalPlatformRevenue || 0}</h2>
+              </div>
+              
+              <div className="bg-red-50 p-6 rounded-3xl shadow-sm border border-red-100 flex flex-col justify-center md:col-span-2">
+                <p className="text-xs font-bold text-red-400 uppercase tracking-widest mb-1">Pending Professional Payouts</p>
+                <h2 className="text-4xl font-black text-red-600">₹{stats?.totalPendingPayouts || 0}</h2>
               </div>
             </div>
 
@@ -232,13 +246,13 @@ export default function AdminDashboard() {
 
                     <div className="flex flex-col gap-2 justify-center">
                       <button 
-                        onClick={() => handleVerify(p._id, true)}
+                        onClick={() => handleVerify(p._id, "verified")}
                         className="bg-green-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-green-700 transition w-full"
                       >
                         ✓ Approve KYC
                       </button>
                       <button 
-                         onClick={() => toast.error("Rejection workflow coming soon!")}
+                         onClick={() => handleVerify(p._id, "rejected")}
                         className="bg-red-50 text-red-600 font-bold px-5 py-2.5 rounded-xl hover:bg-red-100 transition w-full border border-red-200"
                       >
                         ✗ Reject
@@ -278,7 +292,7 @@ export default function AdminDashboard() {
                   </div>
 
                   <button 
-                    onClick={() => handleVerify(p._id, false)}
+                    onClick={() => handleVerify(p._id, "pending")}
                     className="w-full bg-gray-100 text-gray-700 font-bold py-2 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 border border-transparent transition text-sm"
                   >
                     Revoke Verification

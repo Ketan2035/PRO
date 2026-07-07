@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, MapPin, LogOut } from "lucide-react";
 import toast from "react-hot-toast";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -136,6 +137,11 @@ export default function Navbar() {
                 )}
               </div>
             )}
+            
+            {/* NOTIFICATION BELL */}
+            {user && (
+              <NotificationDropdown user={user} role={role} />
+            )}
 
             {role !== "professional" ? (
               <Link to="/pro_signup" className="font-medium hover:text-gray-200 flex items-center gap-1">
@@ -164,6 +170,7 @@ export default function Navbar() {
                 />
               </button>
             )}
+            {user && <NotificationDropdown user={user} role={role} />}
             <button onClick={toggleMenu} className="text-white">
               {isOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
