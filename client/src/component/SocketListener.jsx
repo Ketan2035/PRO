@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { socket } from "../socket";
+import IncomingCallModal from "./IncomingCallModal";
 
 export default function SocketListener() {
   const [notifications, setNotifications] = useState([]);
@@ -74,5 +75,5 @@ export default function SocketListener() {
     };
   }, []);
 
-  return null;
+  return <IncomingCallModal />;
 }

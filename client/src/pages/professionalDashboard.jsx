@@ -5,6 +5,7 @@ import { LayoutDashboard, CalendarDays, User, Star, Settings, LogOut, CheckCircl
 import { socket } from "../socket";
 import ChatBox from "../components/ChatBox";
 import EarningsChart from "../components/EarningsChart";
+import AvailabilityCalendar from "../components/AvailabilityCalendar";
 
 export default function ProfessionalProfile() {
   const [user, setUser] = useState(null);
@@ -62,7 +63,11 @@ export default function ProfessionalProfile() {
       } catch (err) { console.error(err); }
       finally { setLoadingBookings(false); }
     };
+    
     fetchBookings();
+    
+    socket.on("refresh_bookings", fetchBookings);
+    return () => socket.off("refresh_bookings", fetchBookings);
   }, []);
 
   const toggleAvailability = async () => {
@@ -222,6 +227,7 @@ export default function ProfessionalProfile() {
               {[
                 { id: "dashboard", label: "Performance", icon: <TrendingUp size={18} /> },
                 { id: "bookings", label: "Manage Bookings", icon: <CalendarDays size={18} /> },
+                { id: "availability", label: "Availability Calendar", icon: <Clock size={18} /> },
                 { id: "profile", label: "Profile Settings", icon: <Settings size={18} /> },
                 { id: "reviews", label: "Customer Feedback", icon: <Star size={18} /> },
               ].map(tab => (
@@ -407,6 +413,11 @@ export default function ProfessionalProfile() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* AVAILABILITY CALENDAR */}
+          {activeTab === "availability" && (
+            <AvailabilityCalendar professionalId={user._id} />
           )}
 
           {/* PROFILE SETTINGS */}

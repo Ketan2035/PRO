@@ -2,6 +2,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Lock, MapPin, CalendarDays, Clock, CheckCircle2, ChevronRight, ShieldCheck } from "lucide-react";
+import { socket } from "../socket";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -12,12 +13,27 @@ const Checkout = () => {
   const [addresses, setAddresses] = useState([]);
   
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [bookingType, setBookingType] = useState("scheduled"); // "instant" or "scheduled"
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("online");
   
   const [loading, setLoading] = useState(true);
   const [activeStep, setActiveStep] = useState(1); // 1: Address, 2: Slot, 3: Review
+  
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchTimeLeft, setSearchTimeLeft] = useState(30);
+  const [currentReqId, setCurrentReqId] = useState(null);
+
+  useEffect(() => {
+    let timer;
+    if (isSearching && searchTimeLeft > 0) {
+      timer = setInterval(() => setSearchTimeLeft(prev => prev - 1), 1000);
+    } else if (searchTimeLeft === 0 && isSearching) {
+      setIsSearching(false);
+    }
+    return () => clearInterval(timer);
+  }, [isSearching, searchTimeLeft]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -59,10 +75,46 @@ const Checkout = () => {
   }, [id]);
 
   const handleBooking = async () => {
-    if (!selectedAddress || !selectedDate || !selectedTime) {
+    if (bookingType === "scheduled" && (!selectedAddress || !selectedDate || !selectedTime)) {
       return toast.error("Please complete all steps before booking");
+    } else if (bookingType === "instant" && !selectedAddress) {
+      return toast.error("Please provide a service location");
     }
     
+    if (bookingType === "instant") {
+       if (!socket.connected) socket.connect();
+       
+       const reqId = Date.now().toString();
+       setCurrentReqId(reqId);
+       const bookingReq = { 
+          _id: reqId, customerId: user._id, customerName: user.name, 
+          professionalId: pro._id, service: pro.profession, 
+          address: selectedAddress, price: Math.round(pro.pricePerHour + (pro.pricePerHour * 0.1) + (pro.pricePerHour * 0.05))
+       };
+       
+       socket.emit("initiate_instant_booking", { professionalId: pro._id, bookingRequest: bookingReq });
+       
+       setIsSearching(true);
+       setSearchTimeLeft(30);
+       
+       // listen for result
+       socket.once(`instant_booking_result_${reqId}`, async (result) => {
+          setIsSearching(false);
+          if (result.status === "accepted") {
+            toast.success("Professional Accepted! Confirming booking...");
+            // now do the actual POST to save the booking
+            executeBookingCall();
+          } else {
+            toast.error(result.reason === "timeout" ? "Professional unavailable. Please try someone else." : "Professional rejected the request.");
+          }
+       });
+       return;
+    }
+
+    executeBookingCall();
+  };
+
+  const executeBookingCall = async () => {
     // Using a toast promise for a premium feel
     const bookingPromise = fetch("http://localhost:3000/api/booking", {
       method: "POST",
@@ -72,8 +124,9 @@ const Checkout = () => {
         professionalId: pro?._id,
         service: pro?.profession,
         address: selectedAddress,
-        date: selectedDate,
-        time: selectedTime,
+        date: bookingType === "instant" ? new Date().toISOString().split("T")[0] : selectedDate,
+        time: bookingType === "instant" ? "Instant" : selectedTime,
+        bookingType: bookingType,
         paymentMethod: paymentMethod,
       }),
     }).then(async (res) => {
@@ -112,13 +165,49 @@ const Checkout = () => {
   };
 
   const proceedToReview = () => {
-    if (!selectedDate || !selectedTime) return toast.error("Please select a date and time slot");
+    if (bookingType === "scheduled" && (!selectedDate || !selectedTime)) {
+       return toast.error("Please select a date and time slot");
+    }
     setActiveStep(3);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-16">
       
+      {/* Searching Overlay */}
+      {isSearching && (
+        <div className="fixed inset-0 bg-black/80 z-[100] flex flex-col items-center justify-center p-4 backdrop-blur-sm">
+           <div className="relative w-40 h-40 flex items-center justify-center mb-8">
+             <div className="absolute inset-0 border-4 border-blue-500 rounded-full animate-ping opacity-75"></div>
+             <div className="absolute inset-4 border-4 border-blue-400 rounded-full animate-ping opacity-50 animation-delay-300"></div>
+             <img src={pro.profileImage?.url || `https://ui-avatars.com/api/?name=${pro.name}&background=random`} alt="Pro" className="w-24 h-24 rounded-full object-cover border-4 border-white z-10" />
+           </div>
+           
+           <h2 className="text-2xl font-bold text-white mb-2 text-center">Contacting {pro.name}...</h2>
+           <p className="text-blue-200 mb-8 text-center max-w-sm">Please wait while we confirm availability with the professional for your instant request.</p>
+           
+           <div className="w-full max-w-xs bg-gray-800 rounded-full h-2 mb-4 overflow-hidden">
+             <div 
+               className="bg-blue-500 h-full transition-all duration-1000 ease-linear" 
+               style={{ width: `${(searchTimeLeft / 30) * 100}%` }}
+             ></div>
+           </div>
+           <p className="text-gray-400 font-mono font-medium">{searchTimeLeft} seconds remaining</p>
+           
+           <button 
+             onClick={() => {
+               if (currentReqId) {
+                 socket.emit("cancel_instant_booking", { reqId: currentReqId, professionalId: pro._id });
+               }
+               setIsSearching(false);
+             }} 
+             className="mt-12 text-gray-400 hover:text-white transition underline text-sm"
+           >
+             Cancel Request
+           </button>
+        </div>
+      )}
+
       {/* Checkout Header */}
       <header className="bg-white border-b border-gray-200 py-4 px-6 md:px-12 flex items-center justify-between shadow-sm sticky top-0 z-50">
         <Link to="/" className="text-2xl font-bold italic tracking-tight text-[#2874f0]">
@@ -211,34 +300,64 @@ const Checkout = () => {
              
              {activeStep === 2 && (
                <div className="p-6">
-                 <div className="grid md:grid-cols-2 gap-6">
-                   <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                       <CalendarDays size={16} className="text-[#2874f0]" /> Select Date
-                     </label>
-                     <input
-                       type="date"
-                       value={selectedDate}
-                       onChange={(e) => setSelectedDate(e.target.value)}
-                       min={new Date().toISOString().split("T")[0]}
-                       className="w-full border border-gray-300 rounded-sm p-2.5 text-sm focus:border-[#2874f0] focus:ring-1 focus:ring-[#2874f0] outline-none transition"
-                     />
-                   </div>
-                   <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                       <Clock size={16} className="text-[#2874f0]" /> Select Time
-                     </label>
-                     <input
-                       type="time"
-                       value={selectedTime}
-                       onChange={(e) => setSelectedTime(e.target.value)}
-                       className="w-full border border-gray-300 rounded-sm p-2.5 text-sm focus:border-[#2874f0] focus:ring-1 focus:ring-[#2874f0] outline-none transition"
-                     />
-                   </div>
+                 
+                 <div className="flex gap-4 mb-6">
+                   <label className={`flex-1 border p-4 rounded-sm cursor-pointer transition ${bookingType === 'instant' ? 'border-[#2874f0] bg-blue-50' : 'border-gray-200'}`}>
+                     <div className="flex items-center gap-2 mb-2">
+                       <input type="radio" name="bookingType" value="instant" checked={bookingType === 'instant'} onChange={() => setBookingType('instant')} className="text-[#2874f0]" />
+                       <span className="font-bold text-gray-900">Instant Request (Right Now)</span>
+                     </div>
+                     <p className="text-xs text-gray-500 ml-6">The professional will be notified immediately. Requires them to be online.</p>
+                     {!pro.isAvailable && (
+                       <p className="text-xs text-red-500 ml-6 mt-2 font-medium">Currently Offline. Cannot book instantly.</p>
+                     )}
+                   </label>
+                   
+                   <label className={`flex-1 border p-4 rounded-sm cursor-pointer transition ${bookingType === 'scheduled' ? 'border-[#2874f0] bg-blue-50' : 'border-gray-200'}`}>
+                     <div className="flex items-center gap-2 mb-2">
+                       <input type="radio" name="bookingType" value="scheduled" checked={bookingType === 'scheduled'} onChange={() => setBookingType('scheduled')} className="text-[#2874f0]" />
+                       <span className="font-bold text-gray-900">Schedule for Later</span>
+                     </div>
+                     <p className="text-xs text-gray-500 ml-6">Pick a specific date and time for the service.</p>
+                   </label>
                  </div>
 
+                 {bookingType === "scheduled" && (
+                   <div className="grid md:grid-cols-2 gap-6 p-4 bg-gray-50 border border-gray-100 rounded-sm">
+                     <div>
+                       <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                         <CalendarDays size={16} className="text-[#2874f0]" /> Select Date
+                       </label>
+                       <input
+                         type="date"
+                         value={selectedDate}
+                         onChange={(e) => setSelectedDate(e.target.value)}
+                         min={new Date().toISOString().split("T")[0]}
+                         className="w-full border border-gray-300 rounded-sm p-2.5 text-sm focus:border-[#2874f0] focus:ring-1 focus:ring-[#2874f0] outline-none transition"
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                         <Clock size={16} className="text-[#2874f0]" /> Select Time
+                       </label>
+                       <input
+                         type="time"
+                         value={selectedTime}
+                         onChange={(e) => setSelectedTime(e.target.value)}
+                         className="w-full border border-gray-300 rounded-sm p-2.5 text-sm focus:border-[#2874f0] focus:ring-1 focus:ring-[#2874f0] outline-none transition"
+                       />
+                     </div>
+                   </div>
+                 )}
+
                  <div className="pt-4 flex justify-end items-center border-t border-gray-100 mt-6">
-                   <button onClick={proceedToReview} className="bg-[#fb641b] text-white px-8 py-3 rounded-sm font-medium shadow-sm hover:bg-[#f35200] transition uppercase text-sm tracking-wider">
+                   <button 
+                     onClick={proceedToReview} 
+                     disabled={bookingType === "instant" && !pro.isAvailable}
+                     className={`px-8 py-3 rounded-sm font-medium shadow-sm transition uppercase text-sm tracking-wider
+                       ${(bookingType === "instant" && !pro.isAvailable) ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[#fb641b] text-white hover:bg-[#f35200]"}
+                     `}
+                   >
                      Continue
                    </button>
                  </div>
@@ -248,7 +367,10 @@ const Checkout = () => {
              {activeStep > 2 && (
                 <div className="px-6 py-4 flex justify-between items-center text-sm text-gray-600">
                   <div className="flex items-center gap-2">
-                    <Clock size={16} /> <span className="font-medium text-gray-900">{new Date(selectedDate).toLocaleDateString()} at {selectedTime}</span>
+                    <Clock size={16} /> 
+                    <span className="font-medium text-gray-900">
+                      {bookingType === "instant" ? "Instant (Right Now)" : `${new Date(selectedDate).toLocaleDateString()} at ${selectedTime}`}
+                    </span>
                   </div>
                   <button onClick={() => setActiveStep(2)} className="text-[#2874f0] font-medium hover:underline uppercase">Change</button>
                 </div>

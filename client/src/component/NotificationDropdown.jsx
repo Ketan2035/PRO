@@ -151,7 +151,13 @@ export default function NotificationDropdown({ user, role }) {
                   onClick={(e) => {
                     deleteNotification(e, notif._id);
                     setIsOpen(false);
-                    if (notif.link) navigate(notif.link);
+                    if (role === "customer") {
+                      navigate("/profile/customer");
+                    } else if (role === "professional") {
+                      navigate("/profile/pro");
+                    } else if (notif.link) {
+                      navigate(notif.link);
+                    }
                   }}
                   className={`p-3 border-b hover:bg-gray-50 transition cursor-pointer ${notif.read ? 'opacity-70' : 'bg-blue-50/50'}`}
                 >

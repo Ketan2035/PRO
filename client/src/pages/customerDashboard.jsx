@@ -7,6 +7,7 @@ import LiveTrackingMap from "../components/LiveTrackingMap";
 import ChatBox from "../components/ChatBox";
 import BookingDetailsModal from "../components/BookingDetailsModal";
 import { Package, User, MapPin, LogOut, ChevronRight, CheckCircle2, Clock, XCircle, CreditCard, Star, Navigation, MessageSquare } from "lucide-react";
+import { socket } from "../socket";
 
 export default function CustomerProfile() {
   const [user, setUser] = useState(null);
@@ -55,7 +56,11 @@ export default function CustomerProfile() {
         setLoadingBookings(false);
       }
     };
+    
     fetchBookings();
+    
+    socket.on("refresh_bookings", fetchBookings);
+    return () => socket.off("refresh_bookings", fetchBookings);
   }, []);
 
   const updateStatus = async (bookingId, status, cancelReason = "") => {
